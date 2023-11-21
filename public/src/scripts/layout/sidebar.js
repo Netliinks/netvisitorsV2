@@ -20,6 +20,7 @@ import { Events } from "../views/binnacle/Events/EventsView.js";
 import { Binnacle } from "../views/binnacle/binnacle/BinnacleView.js";
 import { Blacklist } from "../views/users/blacklist/blacklist.js";
 import { Vehiculars } from "../views/binnacle/vehiculars/Vehiculars.js";
+import { Sporadic } from "../views/assignment/tasks/sporadic/Sporadic.js";
 export class Sidebar {
     constructor() {
         this.sidebarContainer = document.getElementById('app-sidebar');
@@ -158,6 +159,36 @@ export class Sidebar {
 
               </div>
             </div>
+            <div class="sidebar_item">
+              <span class="sidebar_item_label">
+              <i class="fa-regular fa-walkie-talkie"></i></i> <div class="label">Asignaciones</div>
+              </span>
+
+              <div class="sidebar_subitems">
+
+                <div class="sidebar_subitem" id="render-tasks">
+                  <span class="sidebar_subitem_label">
+                    <i class="fa-regular fa-walkie-talkie"></i> <div class="label">Consignas</div>
+                  </span>
+                  <div class="sidebar_subitems">
+                    <!--div class="sidebar_subitem" id="render-taskstime">
+                      <span class="sidebar_subitem_label">
+                        <i class="fa-regular fa-timer"></i><div class="label">Tiempo</div>
+                      </span>
+                    </div-->
+                    
+                    <div class="sidebar_subitem" id="render-sporadic">
+                      <span class="sidebar_subitem_label">
+                        <i class="fa-regular fa-clock"></i> <div class="label">Específicas</div>
+                      </span>
+                  </div>
+                  </div> 
+
+                </div>
+
+               
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -215,6 +246,9 @@ export class Sidebar {
         // render Superusers
         document.getElementById('render-superusers')?.addEventListener('click', () => {
             new SuperUsers().render(Config.offset, Config.currentPage, "");
+        });
+        document.getElementById('render-sporadic')?.addEventListener('click', () => {
+            new Sporadic().render(Config.offset, Config.currentPage, "");
         });
     }
 }

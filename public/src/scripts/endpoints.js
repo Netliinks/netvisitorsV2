@@ -257,3 +257,34 @@ export const setFile = async (file) => {
         .catch(err => alert(`Error subiendo archivo ${err}`));
     return res;
 };
+export const postNotificationPush = async (data) => {
+    let myHeaders = new Headers();
+    myHeaders.append("Authorization", "key=AAAAQ1NOq3s:APA91bEXEqZ2ozsXg7JmQrOKqWPTPTQOSYqLmExWQsWB0LvA825JDiYisngPUOLXrJKgZpxN-v0i4fQw1G_ZbUgH41FVENrLV4bompTF_q8LxlN4jBdYPxut38fOa0nSCCOS6kGXHOUb");
+    myHeaders.append("Content-Type", "application/json");
+    let bodyNoti = data['body'];
+    let contBody = bodyNoti.length;
+    if (contBody > 30) {
+        bodyNoti = bodyNoti.substring(0, 20);
+        bodyNoti = `${bodyNoti}...`;
+    }
+    let raw = JSON.stringify({
+        "to": data['token'],
+        "notification": {
+            "title": `Notificación ${data['title']}`,
+            "body": bodyNoti
+        },
+        "data": {
+            "type": "tasks"
+        }
+    });
+    var requestOptions = {
+        method: 'POST',
+        headers: myHeaders,
+        body: raw,
+        redirect: 'follow'
+    };
+    fetch("https://fcm.googleapis.com/fcm/send", requestOptions)
+        .then(response => response.text())
+        .then(result => console.log(result))
+        .catch(error => console.log('error', error));
+};
