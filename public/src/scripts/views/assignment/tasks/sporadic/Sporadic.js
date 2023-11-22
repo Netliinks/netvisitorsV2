@@ -1,9 +1,10 @@
 // @filename: Sporadic.ts
-import { deleteEntity, registerEntity, getFilterEntityData, getFilterEntityCount, getUserInfo, getEntitiesData, postNotificationPush } from "../../../../endpoints.js";
+import { deleteEntity, registerEntity, getFilterEntityData, getFilterEntityCount, getUserInfo, getEntitiesData, postNotificationPush, getEntityData, updateEntity } from "../../../../endpoints.js";
 import { inputObserver, CloseDialog, filterDataByHeaderType, pageNumbers, fillBtnPagination } from "../../../../tools.js";
 import { Config } from "../../../../Configs.js";
 import { tableLayout } from "./Layout.js";
 import { tableLayoutTemplate } from "./Template.js";
+import { exportSporadicCsv, exportSporadicPdf, exportSporadicXls } from "../../../../exportFiles/taskSporadic.js";
 const tableRows = Config.tableRows;
 const currentPage = Config.currentPage;
 const customerId = localStorage.getItem('customer_id');
@@ -101,6 +102,128 @@ export class Sporadic {
                 new Sporadic().render(Config.offset, Config.currentPage, search.value.toLowerCase().trim());
             });
         };
+        this.export = () => {
+            const exportNotes = document.getElementById('export-entities');
+            exportNotes.addEventListener('click', async () => {
+                this.dialogContainer.style.display = 'block';
+                this.dialogContainer.innerHTML = `
+              <div class="dialog_content" id="dialog-content">
+                  <div class="dialog">
+                      <div class="dialog_container padding_8">
+                          <div class="dialog_header">
+                              <h2>Seleccionar la fecha</h2>
+                          </div>
+
+                          <div class="dialog_message padding_8">
+                              <div class="form_group">
+                                  <div class="form_input">
+                                      <label class="form_label" for="start-date">Desde:</label>
+                                      <input type="date" class="input_date input_date-start" id="start-date" name="start-date">
+                                  </div>
+                  
+                                  <div class="form_input">
+                                      <label class="form_label" for="end-date">Hasta:</label>
+                                      <input type="date" class="input_date input_date-end" id="end-date" name="end-date">
+                                  </div>
+
+                                  <label for="exportCsv">
+                                      <input type="radio" id="exportCsv" name="exportOption" value="csv" /> CSV
+                                  </label>
+
+                                  <label for="exportXls">
+                                      <input type="radio" id="exportXls" name="exportOption" value="xls" checked /> XLS
+                                  </label>
+
+                                  <label for="exportPdf">
+                                      <input type="radio" id="exportPdf" name="exportOption" value="pdf" /> PDF
+                                  </label>
+                              </div>
+                          </div>
+
+                          <div class="dialog_footer">
+                              <button class="btn btn_primary" id="cancel">Cancelar</button>
+                              <button class="btn btn_danger" id="export-data">Exportar</button>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          `;
+                let fecha = new Date(); //Fecha actual
+                let mes = fecha.getMonth() + 1; //obteniendo mes
+                let dia = fecha.getDate(); //obteniendo dia
+                let anio = fecha.getFullYear(); //obteniendo año
+                if (dia < 10)
+                    dia = '0' + dia; //agrega cero si el menor de 10
+                if (mes < 10)
+                    mes = '0' + mes; //agrega cero si el menor de 10
+                // @ts-ignore
+                document.getElementById("start-date").value = anio + "-" + mes + "-" + dia;
+                // @ts-ignore
+                document.getElementById("end-date").value = anio + "-" + mes + "-" + dia;
+                inputObserver();
+                const _closeButton = document.getElementById('cancel');
+                const exportButton = document.getElementById('export-data');
+                const _dialog = document.getElementById('dialog-content');
+                exportButton.addEventListener('click', async () => {
+                    const _values = {
+                        start: document.getElementById('start-date'),
+                        end: document.getElementById('end-date'),
+                        exportOption: document.getElementsByName('exportOption')
+                    };
+                    let rawExport = JSON.stringify({
+                        "filter": {
+                            "conditions": [
+                                {
+                                    "property": "taskType",
+                                    "operator": "=",
+                                    "value": `ESPORADICAS`
+                                },
+                                {
+                                    "property": "customer.id",
+                                    "operator": "=",
+                                    "value": `${customerId}`
+                                },
+                                {
+                                    "property": "execDate",
+                                    "operator": ">=",
+                                    "value": `${_values.start.value}`
+                                },
+                                {
+                                    "property": "execDate",
+                                    "operator": "<=",
+                                    "value": `${_values.end.value}`
+                                }
+                            ],
+                        },
+                        sort: "-execDate",
+                        fetchPlan: 'full',
+                    });
+                    const sporadic = await getFilterEntityData("Task_", rawExport);
+                    for (let i = 0; i < _values.exportOption.length; i++) {
+                        let ele = _values.exportOption[i];
+                        if (ele.type = "radio") {
+                            if (ele.checked) {
+                                if (ele.value == "xls") {
+                                    // @ts-ignore
+                                    exportSporadicXls(sporadic, _values.start.value, _values.end.value);
+                                }
+                                else if (ele.value == "csv") {
+                                    // @ts-ignore
+                                    exportSporadicCsv(sporadic, _values.start.value, _values.end.value);
+                                }
+                                else if (ele.value == "pdf") {
+                                    // @ts-ignore
+                                    exportSporadicPdf(sporadic, _values.start.value, _values.end.value);
+                                }
+                            }
+                        }
+                    }
+                });
+                _closeButton.onclick = () => {
+                    new CloseDialog().x(_dialog);
+                };
+            });
+        };
     }
     async render(offset, actualPage, search) {
         infoPage.offset = offset;
@@ -162,8 +285,9 @@ export class Sporadic {
             }
         }
         this.register();
-        //this.edit(this.entityDialogContainer, data)
+        this.edit(this.entityDialogContainer, data);
         this.remove();
+        this.export();
     }
     register() {
         // register entity
@@ -302,31 +426,28 @@ export class Sporadic {
         const reg = async (raw) => {
         };
     }
-    /*public edit(container: InterfaceElement, data: any) {
-      // Edit entity
-      const fecha = new Date();
-      const day = fecha.getDate();
-      const month = fecha.getMonth() + 1;
-      const year = fecha.getFullYear();
-
-      const dateFormat = year + '-' + month + '-' + day;
-      let dateToday = new Date(dateFormat);
-      const edit: InterfaceElement = document.querySelectorAll('#edit-entity')
-      edit.forEach((edit: InterfaceElement) => {
-          const entityId = edit.dataset.entityid
-          edit.addEventListener('click', (): void => {
-              RInterface('Task_', entityId)
-          })
-      })
-
-      const RInterface = async (entities: string, entityID: string): Promise<void> => {
-          const data: any = await getEntityData(entities, entityID)
-          const executionDate = data.execDate;
-          
-          let dateExec = new Date(executionDate);
-          this.entityDialogContainer.innerHTML = ''
-          this.entityDialogContainer.style.display = 'flex'
-          this.entityDialogContainer.innerHTML = `
+    edit(container, data) {
+        // Edit entity
+        const fecha = new Date();
+        const day = fecha.getDate();
+        const month = fecha.getMonth() + 1;
+        const year = fecha.getFullYear();
+        const dateFormat = year + '-' + month + '-' + day;
+        let dateToday = new Date(dateFormat);
+        const edit = document.querySelectorAll('#edit-entity');
+        edit.forEach((edit) => {
+            const entityId = edit.dataset.entityid;
+            edit.addEventListener('click', () => {
+                RInterface('Task_', entityId);
+            });
+        });
+        const RInterface = async (entities, entityID) => {
+            const data = await getEntityData(entities, entityID);
+            const executionDate = data.execDate;
+            let dateExec = new Date(executionDate);
+            this.entityDialogContainer.innerHTML = '';
+            this.entityDialogContainer.style.display = 'flex';
+            this.entityDialogContainer.innerHTML = `
           <div class="entity_editor" id="entity-editor">
           <div class="entity_editor_header">
               <div class="user_info">
@@ -357,7 +478,7 @@ export class Sporadic {
                 </div>
 
          
-              </div>
+              </div> 
           </div>
           <!-- END EDITOR BODY -->
 
@@ -366,129 +487,115 @@ export class Sporadic {
           </div>
           </div>
           `;
-          
-          if(dateToday >= dateExec){
-          
-            const nombre: InterfaceElement = document.getElementById("entity-name")
-            nombre.disabled=true;
-            const fecha: InterfaceElement = document.getElementById("execution-date")
-            fecha.disabled=true;
-            const tiempo: InterfaceElement = document.getElementById("execution-time")
-            tiempo.disabled=true;
-            const update: InterfaceElement = document.getElementById("update-changes")
-            update.disabled=true;
-           
-          }
-          inputObserver();
-          
-          this.close();
-          UUpdate(entityID);
+            if (dateToday >= dateExec) {
+                let updateButton;
+                updateButton = document.getElementById('update-changes');
+                const nombre = document.getElementById("entity-name");
+                nombre.disabled = true;
+                const fecha = document.getElementById("execution-date");
+                fecha.disabled = true;
+                const tiempo = document.getElementById("execution-time");
+                tiempo.disabled = true;
+                updateButton = document.getElementById("update-changes");
+                updateButton.disabled = true;
+            }
+            inputObserver();
+            this.close();
+            UUpdate(entityID);
         };
-        let updateButton: InterfaceElement
-           updateButton = document.getElementById('update-changes');
-          const UUpdate = async (entityId:any) => {
-            
+        const UUpdate = async (entityId) => {
+            let updateButton;
+            updateButton = document.getElementById('update-changes');
+            console.log(updateButton);
             const $value = {
-              // @ts-ignore
-              name: document.getElementById('entity-name'),
-              // @ts-ignore
-              execDate : document.getElementById('execution-date'),
-              execTime: document.getElementById('execution-time'),
-              // @ts-ignore
-             
-             
-          };
-            updateButton.addEventListener('click', (e) => {
-              e.preventDefault()
-              let name: InterfaceElement
-               name = document.getElementById('entity-name')
-              
-              
-              let executionDate: InterfaceElement
-              executionDate= document.getElementById('execution-date')
-              let executionTime: InterfaceElement
-              executionDate= document.getElementById('execution-time')
-              const fecha = new Date();
-              const day = fecha.getDate();
-              const month = fecha.getMonth() + 1;
-              const year = fecha.getFullYear();
-  
-              const dateFormat = year + '-' + month + '-' + day;
-              const hour = fecha.getHours();
-              const minutes  = fecha.getMinutes();
-              const seconds = fecha.getSeconds();
-  
-              const hourFormat = `${hour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-               
-              let dateToday = new Date(dateFormat);
-              let dateExec = new Date(`${executionDate.value}`);
-              let horusInstant = new Date( `${dateFormat}T${hourFormat}`);
-              let horusExec = new Date(`${dateFormat}T${executionTime.value}`);
-              //console.log(hourFormat)
-              //console.log(executionTime.value)
-               
-              if(`${name.value.trim()}` === '' ||`${name.value.trim()}` === null){
-                alert('Nombre del consigna general vacío')
-              }
-              else if(`${executionDate.value.trim()}` === '' || `${executionDate.value.trim()}` === null){
-                alert('Debe especificar la fecha de la consigna')
-              }
-              else if(dateToday > dateExec){
-                alert('La fecha no puede ser menor a la del día de hoy')
-              }
-
-              else if(`${executionTime.value.trim()}` === '' || `${executionTime.value.trim()}` === null){
-                alert('Debe especificar la hora de ejecución de la consigna')
-              }
-              //COMPARANDO LAS HORAS DEL MISMO DIA
-              else if(dateToday.getTime() == dateExec.getTime() && (horusInstant > horusExec)){
-                alert('La hora no puede ser menor a la actual')
-                
-              }
-           
-              else{
-                let raw :string  = JSON.stringify({
-                    // @ts-ignore
-                    "name": `${$value.name.value}`,
-                    // @ts-ignore
-                    "execDate": `${$value.execDate.value}`,
-                    // @ts-ignore
-                    "execTime": `${$value.execTime.value}`,
-                    "isRead": false
-                });
-                update(raw);
-              }
+                // @ts-ignore
+                name: document.getElementById('entity-name'),
+                // @ts-ignore
+                execDate: document.getElementById('execution-date'),
+                execTime: document.getElementById('execution-time'),
+                // @ts-ignore
+            };
+            updateButton.addEventListener('click', async () => {
+                //e.preventDefault()
+                let name;
+                name = document.getElementById('entity-name');
+                let executionDate;
+                executionDate = document.getElementById('execution-date');
+                let executionTime;
+                executionTime = document.getElementById('execution-time');
+                const fecha = new Date();
+                const day = fecha.getDate();
+                const month = fecha.getMonth() + 1;
+                const year = fecha.getFullYear();
+                const dateFormat = year + '-' + month + '-' + day;
+                const hour = fecha.getHours();
+                const minutes = fecha.getMinutes();
+                const seconds = fecha.getSeconds();
+                const hourFormat = `${hour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                let dateToday = new Date(dateFormat);
+                let dateExec = new Date(`${executionDate.value}`);
+                let horusInstant = new Date(`${dateFormat}T${hourFormat}`);
+                let horusExec = new Date(`${dateFormat}T${executionTime.value}`);
+                //console.log(hourFormat)
+                //console.log(executionTime.value)
+                if (`${name.value.trim()}` === '' || `${name.value.trim()}` === null) {
+                    alert('Nombre del consigna general vacío');
+                }
+                else if (`${executionDate.value.trim()}` === '' || `${executionDate.value.trim()}` === null) {
+                    alert('Debe especificar la fecha de la consigna');
+                }
+                else if (dateToday > dateExec) {
+                    alert('La fecha no puede ser menor a la del día de hoy');
+                }
+                else if (`${executionTime.value.trim()}` === '' || `${executionTime.value.trim()}` === null) {
+                    alert('Debe especificar la hora de ejecución de la consigna');
+                }
+                //COMPARANDO LAS HORAS DEL MISMO DIA
+                else if (dateToday.getTime() == dateExec.getTime() && (horusInstant > horusExec)) {
+                    alert('La hora no puede ser menor a la actual');
+                }
+                else {
+                    let raw = JSON.stringify({
+                        // @ts-ignore
+                        "name": `${$value.name.value}`,
+                        // @ts-ignore
+                        "execDate": `${$value.execDate.value}`,
+                        // @ts-ignore
+                        "execTime": `${$value.execTime.value}`,
+                        "isRead": false
+                    });
+                    update(raw);
+                }
             });
-            const update = async (raw:string)  => {
-              updateEntity('Task_', entityId, raw)
-                  .then((res) => {
-                  setTimeout(async () => {
-                      let tableBody;
-                      let container;
-                      let data;
-                      data = await getTakSporadic();
-                      new CloseDialog()
-                          .x(container =
-                          document.getElementById('entity-editor-container'));
-                      new Sporadic().load(tableBody
-                          = document.getElementById('datatable-body'), currentPage, data);
-                  }, 100);
-              });
-              const users = await getEntitiesData('User');
-              const FUsers = users.filter((data) => `${data.customer?.id}` === `${customerId}` && `${data.userType}` === `GUARD`);
-              for(let i =0; i<FUsers.length;i++){
-                  if(FUsers[i]['token']!=undefined){
-                      const data = {"token":FUsers[i]['token'],"title": "Específica", "body":`${$value.name.value}` }
-                      const envioPush = await postNotificationPush(data);
-                  
-                  }
-              }
-          };
-          
-          //const data = {"title": "Específica", "body":`${$value.name.value}` }
-          //const envioPush = await postNotificationPush(data);
+            const update = async (raw) => {
+                updateEntity('Task_', entityId, raw)
+                    .then((res) => {
+                    setTimeout(async () => {
+                        let tableBody;
+                        let container;
+                        let data;
+                        data = await getTaskSporadic();
+                        new CloseDialog()
+                            .x(container =
+                            document.getElementById('entity-editor-container'));
+                        new Sporadic().load(tableBody
+                            = document.getElementById('datatable-body'), currentPage, data);
+                    }, 100);
+                });
+                const users = await getEntitiesData('User');
+                const FUsers = users.filter((data) => `${data.customer?.id}` === `${customerId}` && `${data.userType}` === `GUARD`);
+                for (let i = 0; i < FUsers.length; i++) {
+                    if (FUsers[i]['token'] != undefined) {
+                        const data = { "token": FUsers[i]['token'], "title": "Específica", "body": `${$value.name.value}` };
+                        const envioPush = postNotificationPush(data);
+                        console.log(envioPush);
+                    }
+                }
+            };
+            //const data = {"title": "Específica", "body":`${$value.name.value}` }
+            //const envioPush = await postNotificationPush(data);
         };
-  }*/
+    }
     remove() {
         const remove = document.querySelectorAll('#remove-entity');
         remove.forEach((remove) => {
