@@ -1,5 +1,5 @@
 // @filename: Sporadic.ts
-import { deleteEntity, registerEntity, getFilterEntityData, getFilterEntityCount, getUserInfo, getEntitiesData, postNotificationPush, getEntityData, updateEntity } from "../../../../endpoints.js";
+import { deleteEntity, registerEntity, getFilterEntityData, getFilterEntityCount, getUserInfo, postNotificationPush, getEntityData, updateEntity } from "../../../../endpoints.js";
 import { inputObserver, CloseDialog, filterDataByHeaderType, pageNumbers, fillBtnPagination } from "../../../../tools.js";
 import { Config } from "../../../../Configs.js";
 import { tableLayout } from "./Layout.js";
@@ -8,7 +8,6 @@ import { exportSporadicCsv, exportSporadicPdf, exportSporadicXls } from "../../.
 const tableRows = Config.tableRows;
 const currentPage = Config.currentPage;
 const customerId = localStorage.getItem('customer_id');
-let currentUserInfo;
 let infoPage = {
     count: 0,
     offset: Config.offset,
@@ -39,7 +38,7 @@ const getTaskSporadic = async () => {
                 },
             ],
         },
-        sort: "-createdDate",
+        sort: "+execDate",
         limit: Config.tableRows,
         offset: infoPage.offset,
     });
@@ -64,7 +63,7 @@ const getTaskSporadic = async () => {
                     }
                 ]
             },
-            sort: "-createdDate",
+            sort: "+execDate",
             limit: Config.tableRows,
             offset: infoPage.offset
         });
@@ -179,6 +178,11 @@ export class Sporadic {
                                     "value": `ESPORADICAS`
                                 },
                                 {
+                                    "property": "user.userType",
+                                    "operator": "=",
+                                    "value": `CUSTOMER`
+                                },
+                                {
                                     "property": "customer.id",
                                     "operator": "=",
                                     "value": `${customerId}`
@@ -195,7 +199,7 @@ export class Sporadic {
                                 }
                             ],
                         },
-                        sort: "-execDate",
+                        sort: "+execDate",
                         fetchPlan: 'full',
                     });
                     const sporadic = await getFilterEntityData("Task_", rawExport);
@@ -236,9 +240,53 @@ export class Sporadic {
         let data = await getTaskSporadic();
         tableBody.innerHTML = tableLayoutTemplate.repeat(tableRows);
         this.load(tableBody, currentPage, data);
-        new filterDataByHeaderType().filter();
         this.searchEntity(tableBody /*, data*/);
+        new filterDataByHeaderType().filter();
         this.pagination(data, tableRows, infoPage.currentPage);
+    }
+    openTasksModal(container, data) {
+        const view = document.querySelectorAll('#view-entity');
+        view.forEach((view) => {
+            const entityId = view.dataset.entityid;
+            view.addEventListener('click', () => {
+                RInterface('Task_', entityId);
+            });
+        });
+        const RInterface = async (entities, entityID) => {
+            const data = await getEntityData(entities, entityID);
+            const dialogContainer = document.getElementById('app-dialogs');
+            dialogContainer.innerHTML = `
+                <div class="dialog_content" id="dialog-content">
+                    <div class="dialog">
+                        <div class="dialog_container padding_8" style="width:70%;position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);" id="modal">
+                            <div class="dialog_header" style="display: flex;justify-content: center;">
+                                <h2 style="margin: 0;">${data.name}</h2>
+                            </div>
+
+                            <div class="dialog_message padding_8" style="text-align: center;">
+                                <p style="text-align: justify;">${data.description ?? ""}</p>
+                            </div>
+                            <div class="dialog_message padding_8" style="display: flex; justify-content: center;">
+                                <div  style="padding:20px;background:#dfdfdf"><span><i class="fa-solid fa-calendar-days" style="font-size:15px"></i> ${data.execDate}</span></div>
+                                <div style="width: 50px"></div>
+                                <div style="padding:20px;background:#dfdfdf""><span><i class="fa-solid fa-clock"  style="font-size:15px"></i> ${data.execTime}</span></div>
+                                
+                            </div>
+                            
+                            <div class="dialog_footer" style="text-align: center;">
+                                <button class="btn btn_primary" id="cancel-modal">Cerrar</button>
+                                
+                            </div>
+                        </div>
+                </div>
+            </div>
+              `;
+            const cancelBtnModal = document.getElementById('cancel-modal');
+            cancelBtnModal.addEventListener('click', () => {
+                const dialog = document.getElementById('dialog-content');
+                new CloseDialog().x(dialog);
+            });
+        };
     }
     load(table, currentPage, data) {
         table.innerHTML = '';
@@ -265,14 +313,13 @@ export class Sporadic {
                 <td>${taskSporadic.execDate}</dt>
       
                 <td>${taskSporadic.execTime}</dt>`;
-                if (taskSporadic.isRead == false) {
-                    row.innerHTML += `<td style="text-align: center;"><i class="fa-solid fa-eye-slash"></i></span></td>`;
-                }
-                else {
-                    row.innerHTML += `<td style="text-align: center;"><span><i class="fa-solid fa-eye"></i></span></td>`;
-                }
+                row.innerHTML += `<td>${taskSporadic.isReadDate ?? ''} </dt>`;
+                row.innerHTML += `<td>${taskSporadic.isReadTime ?? ''}</dt>`;
                 row.innerHTML += `
                 <td class="entity_options">
+                <button class="button" id="view-entity" data-entityId="${taskSporadic.id}">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                </button>
                 <button class="button" id="edit-entity" data-entityId="${taskSporadic.id}">
                 <i class="fa-solid fa-pen"></i>
               </button>
@@ -288,6 +335,7 @@ export class Sporadic {
         this.edit(this.entityDialogContainer, data);
         this.remove();
         this.export();
+        this.openTasksModal(this.content, data);
     }
     register() {
         // register entity
@@ -312,8 +360,13 @@ export class Sporadic {
             <!-- EDITOR BODY -->
             <div class="entity_editor_body">
               <div class="material_input">
-                <input type="text" id="entity-name" autocomplete="none" required>
-                <label for="entity-name">Específicas</label>
+                  <input type="text" id="entity-name" autocomplete="none" required>
+                  <label for="entity-name">Título</label>
+              </div>
+              
+              <div class="form_input">
+                  <label for="entity-description" class="form_label"></i> Descripción:</label>
+                  <textarea id="entity-description" name="entity-description" row="30" class="input_textarea"></textarea>
               </div>
               <div class="form_group">
                   <div class="form_input">
@@ -357,6 +410,7 @@ export class Sporadic {
             registerButton.addEventListener('click', async () => {
                 const inputsCollection = {
                     name: document.getElementById('entity-name'),
+                    description: document.getElementById('entity-description'),
                     customer: document.getElementById('entity-customer'),
                     executionDate: document.getElementById('execution-date'),
                     executionTime: document.getElementById('execution-time')
@@ -365,6 +419,24 @@ export class Sporadic {
                 let dateExec = new Date(`${inputsCollection.executionDate.value}`);
                 let horusInstant = new Date(`${dateFormat}T${hourFormat}`);
                 let horusExec = new Date(`${dateFormat}T${inputsCollection.executionTime.value}`);
+                let _userInfo = await getUserInfo();
+                const customerId = localStorage.getItem('customer_id');
+                //console.log(inputsCollection.executionDate.value)
+                const raw = JSON.stringify({
+                    "taskType": `ESPORADICAS`,
+                    "name": `${inputsCollection.name.value}`,
+                    "description": `${inputsCollection.description.value}`,
+                    "execDate": `${inputsCollection.executionDate.value}`,
+                    "user": {
+                        "id": `${_userInfo.attributes.id}`
+                    },
+                    "customer": {
+                        "id": `${customerId}`
+                    },
+                    "execTime": `${inputsCollection.executionTime.value}`,
+                    "startTime": `${hourFormat}`,
+                    "startDate": `${dateFormat}`,
+                });
                 if (`${inputsCollection.name.value.trim()}` === '' || `${inputsCollection.name.value.trim()}` === null) {
                     alert('Nombre del consigna general vacío');
                 }
@@ -382,48 +454,52 @@ export class Sporadic {
                     alert('La hora no puede ser menor a la actual');
                 }
                 else {
-                    let _userInfo = await getUserInfo();
-                    const customerId = localStorage.getItem('customer_id');
-                    //console.log(inputsCollection.executionDate.value)
-                    const raw = JSON.stringify({
-                        "taskType": `ESPORADICAS`,
-                        "name": `${inputsCollection.name.value}`,
-                        "execDate": `${inputsCollection.executionDate.value}`,
-                        "user": {
-                            "id": `${_userInfo.attributes.id}`
+                    reg(raw);
+                    let rawUser = JSON.stringify({
+                        "filter": {
+                            "conditions": [
+                                {
+                                    "property": "customer.id",
+                                    "operator": "=",
+                                    "value": `${customerId}`
+                                },
+                                {
+                                    "property": "userType",
+                                    "operator": "=",
+                                    "value": `GUARD`
+                                },
+                                {
+                                    "property": "state.name",
+                                    "operator": "=",
+                                    "value": `Enabled`
+                                },
+                                {
+                                    "property": "token",
+                                    "operator": "<>",
+                                    "value": ``
+                                }
+                            ],
                         },
-                        "customer": {
-                            "id": `${customerId}`
-                        },
-                        "execTime": `${inputsCollection.executionTime.value}`,
-                        "startTime": `${hourFormat}`,
-                        "startDate": `${dateFormat}`,
                     });
-                    /*const raw = JSON.stringify({
-                        "name": `${inputsCollection.name.value}`,
-                        "customer": {
-                            "id": `${customerId}`
-                        }
-                    })*/
-                    registerEntity(raw, 'Task_');
-                    const users = await getEntitiesData('User');
-                    const FUsers = users.filter((data) => `${data.customer?.id}` === `${customerId}` && `${data.userType}` === `GUARD`);
-                    for (let i = 0; i < FUsers.length; i++) {
-                        if (FUsers[i]['token'] != undefined) {
-                            const data = { "token": FUsers[i]['token'], "title": "Específica", "body": `${inputsCollection.name.value}` };
-                            const envioPush = postNotificationPush(data);
-                            console.log(envioPush);
-                        }
+                    const dataUser = await getFilterEntityData("User", rawUser);
+                    for (let i = 0; i < dataUser.length; i++) {
+                        const data = { "token": dataUser[i]['token'], "title": "Específica", "body": `${inputsCollection.name.value}` };
+                        const envioPush = await postNotificationPush(data);
                     }
-                    setTimeout(() => {
+                }
+            });
+            const reg = async (raw) => {
+                registerEntity(raw, 'Task_')
+                    .then((res) => {
+                    setTimeout(async () => {
+                        //let data = await getUsers();
+                        const tableBody = document.getElementById('datatable-body');
                         const container = document.getElementById('entity-editor-container');
                         new CloseDialog().x(container);
                         new Sporadic().render(Config.offset, Config.currentPage, infoPage.search);
                     }, 1000);
-                }
-            });
-        };
-        const reg = async (raw) => {
+                });
+            };
         };
     }
     edit(container, data) {
@@ -461,12 +537,14 @@ export class Sporadic {
           <!-- EDITOR BODY -->
           <div class="entity_editor_body">
              
-              <div class="material_input">
-                
-                <input type="text" id="entity-name" class="input_filled" value="${data.name}" >
-                <label for="entity-name">Nombre</label>
-                
-              </div>
+          <div class="material_input">
+          <input type="text" id="entity-name" class="input_filled" value="${data.name}">
+              <label for="entity-name">Título</label>
+          </div>
+            <div class="form_input">
+            <label for="entity-description" class="form_label"></i> Descripción:</label>
+              <textarea id="entity-description" name="entity-description" row="30" class="input_textarea">${data.description ?? ""}</textarea>
+            </div>
               <div class="form_group">
                 <div class="form_input">
                     <label class="form_label" for="execution-date">Fecha de Ejecución:</label>
@@ -492,6 +570,8 @@ export class Sporadic {
                 updateButton = document.getElementById('update-changes');
                 const nombre = document.getElementById("entity-name");
                 nombre.disabled = true;
+                const description = document.getElementById("entity-description");
+                description.disabled = true;
                 const fecha = document.getElementById("execution-date");
                 fecha.disabled = true;
                 const tiempo = document.getElementById("execution-time");
@@ -510,6 +590,7 @@ export class Sporadic {
             const $value = {
                 // @ts-ignore
                 name: document.getElementById('entity-name'),
+                description: document.getElementById('entity-description'),
                 // @ts-ignore
                 execDate: document.getElementById('execution-date'),
                 execTime: document.getElementById('execution-time'),
@@ -559,6 +640,8 @@ export class Sporadic {
                         // @ts-ignore
                         "name": `${$value.name.value}`,
                         // @ts-ignore
+                        "description": `${$value.description.value}`,
+                        // @ts-ignore
                         "execDate": `${$value.execDate.value}`,
                         // @ts-ignore
                         "execTime": `${$value.execTime.value}`,
@@ -567,6 +650,10 @@ export class Sporadic {
                     update(raw);
                 }
             });
+            /**
+             * Update entity and execute functions to finish defying user
+             * @param raw
+             */
             const update = async (raw) => {
                 updateEntity('Task_', entityId, raw)
                     .then((res) => {
@@ -574,26 +661,45 @@ export class Sporadic {
                         let tableBody;
                         let container;
                         let data;
-                        data = await getTaskSporadic();
-                        new CloseDialog()
-                            .x(container =
-                            document.getElementById('entity-editor-container'));
-                        new Sporadic().load(tableBody
-                            = document.getElementById('datatable-body'), currentPage, data);
+                        tableBody = document.getElementById('datatable-body');
+                        container = document.getElementById('entity-editor-container');
+                        //data = await getUsers();
+                        new CloseDialog().x(container);
+                        new Sporadic().render(infoPage.offset, infoPage.currentPage, infoPage.search);
                     }, 100);
                 });
-                const users = await getEntitiesData('User');
-                const FUsers = users.filter((data) => `${data.customer?.id}` === `${customerId}` && `${data.userType}` === `GUARD`);
-                for (let i = 0; i < FUsers.length; i++) {
-                    if (FUsers[i]['token'] != undefined) {
-                        const data = { "token": FUsers[i]['token'], "title": "Específica", "body": `${$value.name.value}` };
-                        const envioPush = postNotificationPush(data);
-                        console.log(envioPush);
-                    }
+                let rawUser = JSON.stringify({
+                    "filter": {
+                        "conditions": [
+                            {
+                                "property": "customer.id",
+                                "operator": "=",
+                                "value": `${customerId}`
+                            },
+                            {
+                                "property": "userType",
+                                "operator": "=",
+                                "value": `GUARD`
+                            },
+                            {
+                                "property": "state.name",
+                                "operator": "=",
+                                "value": `Enabled`
+                            },
+                            {
+                                "property": "token",
+                                "operator": "<>",
+                                "value": ``
+                            }
+                        ],
+                    },
+                });
+                const dataUser = await getFilterEntityData("User", rawUser);
+                for (let i = 0; i < dataUser.length; i++) {
+                    const data = { "token": dataUser[i]['token'], "title": "Específica", "body": `${$value.name.value}` };
+                    const envioPush = await postNotificationPush(data);
                 }
             };
-            //const data = {"title": "Específica", "body":`${$value.name.value}` }
-            //const envioPush = await postNotificationPush(data);
         };
     }
     remove() {
@@ -628,13 +734,20 @@ export class Sporadic {
                 const deleteButton = document.getElementById('delete');
                 const cancelButton = document.getElementById('cancel');
                 const dialogContent = document.getElementById('dialog-content');
-                deleteButton.onclick = () => {
+                deleteButton.onclick = async () => {
                     deleteEntity('Task_', entityId)
-                        .then(res => new Sporadic().render(infoPage.offset, infoPage.currentPage, infoPage.search));
-                    new CloseDialog().x(dialogContent);
+                        .then((res) => {
+                        setTimeout(async () => {
+                            //let data = await getUsers();
+                            const tableBody = document.getElementById('datatable-body');
+                            new CloseDialog().x(dialogContent);
+                            new Sporadic().render(infoPage.offset, infoPage.currentPage, infoPage.search);
+                        }, 1000);
+                    });
                 };
                 cancelButton.onclick = () => {
                     new CloseDialog().x(dialogContent);
+                    //this.render();
                 };
             });
         });
