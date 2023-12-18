@@ -126,7 +126,7 @@ export class SignIn {
                 }
                 if (currentUser.attributes.verifiedSuper === true) {
                     let user = await getEntityData('User', currentUser.attributes.id);
-                    let customer = await getEntityData('Customer', customerId);
+                    let customer = await getEntityData('Customer', user?.customer?.id);
                     let business = await getEntityData('Business', user?.business?.id);
                     if (user?.state?.name == 'Enabled' && customer?.state?.name == 'Enabled' && business?.state?.name == 'Enabled') {
                         localStorage.setItem('customer_id', user?.customer?.id);
