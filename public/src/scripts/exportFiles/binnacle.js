@@ -50,7 +50,7 @@ export const exportBinnaclePdf = (ar, start, end) => {
         lMargin = 140; //left margin in mm
         rMargin = 5; //right margin in mm
         pdfInMM = 210; //210;  // width of A4 in mm
-        var description = event.description.split("\n").join(". ").replace(/([\uE000-\uF8FF]|\uD83C[\uDF00-\uDFFF]|\uD83D[\uDC00-\uDDFF])/g, '');
+        var description = event.description.split("\n").join(". ").replace(/[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2580-\u27BF]|\uD83E[\uDD10-\uDDFF]/g, '').trim();
         var paragraph = doc.splitTextToSize(description, (pdfInMM - lMargin - rMargin));
         doc.text(lMargin, row, paragraph);
         rowDescription = calculateRow(description.length, "parrafo");
@@ -59,7 +59,7 @@ export const exportBinnaclePdf = (ar, start, end) => {
         lMargin = 90; //left margin in mm
         rMargin = 5; //right margin in mm
         pdfInMM = 140; //210;  // width of A4 in mm
-        var title = event.title.split("\n").join(". ").replace(/([\uE000-\uF8FF]|\uD83C[\uDF00-\uDFFF]|\uD83D[\uDC00-\uDDFF])/g, '');
+        var title = event.title.split("\n").join(". ").replace(/[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2580-\u27BF]|\uD83E[\uDD10-\uDDFF]/g, '').trim();
         if (title === "Se ha enviado la notificación") {
             description.includes("Visita emergente finalizada confirmada.")
                 ? title = "Visita Emergente Finalizada"
@@ -112,7 +112,7 @@ export const exportBinnacleCsv = (ar, start, end) => {
     for (let i = 0; i < ar.length; i++) {
         let event = ar[i];
         // @ts-ignore
-        //if(event.creationDate >= _values.start.value && event.creationDate <= _values.end.value){
+        //if (event.creationDate >= _values.start.value && event.creationDate <= _values.end.value) {
         let obj = {
             "Título": `${event.title.split("\n").join("(salto)")}`,
             "Fecha": `${event.creationDate}`,
@@ -130,7 +130,7 @@ export const exportBinnacleXls = (ar, start, end) => {
     for (let i = 0; i < ar.length; i++) {
         let event = ar[i];
         // @ts-ignore
-        //if(event.creationDate >= start && event.creationDate <= end){
+        //if (event.creationDate >= start && event.creationDate <= end) {
         let obj = {
             "Título": `${event.title.split("\n").join("(salto)")}`,
             "Fecha": `${event.creationDate}`,
@@ -201,10 +201,10 @@ const calculateRow = (length, mode) => {
     let row = 0;
     let limit = 0; // limite de lineas
     if (mode == "parrafo") {
-        limit = 43;
+        limit = 47;
     }
     else if (mode == "titulo") {
-        limit = 20;
+        limit = 30;
     }
     let lineCount = Math.ceil(length / limit);
     for (let i = 1; i <= lineCount; i++) {
