@@ -397,10 +397,15 @@ export class Sporadic {
             inputObserver();
             //inputSelect('Customer', 'entity-customer')
             this.close();
+            const agregarCeros = (numero) => {
+                return day < 10 ? `0${numero}` : numero;
+            };
             const registerButton = document.getElementById('register-entity');
             const fecha = new Date();
-            const day = fecha.getDate();
-            const month = fecha.getMonth() + 1;
+            let day = fecha.getDate();
+            day = agregarCeros(day);
+            let month = fecha.getMonth() + 1;
+            month = agregarCeros(month);
             const year = fecha.getFullYear();
             const dateFormat = year + '-' + month + '-' + day;
             const hour = fecha.getHours();
@@ -604,9 +609,14 @@ export class Sporadic {
                 executionDate = document.getElementById('execution-date');
                 let executionTime;
                 executionTime = document.getElementById('execution-time');
+                const agregarCeros = (numero) => {
+                    return day < 10 ? `0${numero}` : numero;
+                };
                 const fecha = new Date();
-                const day = fecha.getDate();
-                const month = fecha.getMonth() + 1;
+                let day = fecha.getDate();
+                day = (day);
+                let month = fecha.getMonth() + 1;
+                month = agregarCeros(month);
                 const year = fecha.getFullYear();
                 const dateFormat = year + '-' + month + '-' + day;
                 const hour = fecha.getHours();
@@ -651,9 +661,9 @@ export class Sporadic {
                 }
             });
             /**
-             * Update entity and execute functions to finish defying user
-             * @param raw
-             */
+         * Update entity and execute functions to finish defying user
+         * @param raw
+         */
             const update = async (raw) => {
                 updateEntity('Task_', entityId, raw)
                     .then((res) => {
