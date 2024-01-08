@@ -1,6 +1,6 @@
 // @filename: Sporadic.ts
 
-import { deleteEntity, registerEntity, getFilterEntityData, getFilterEntityCount,getUserInfo,getEntitiesData,postNotificationPush,getEntityData,updateEntity } from "../../../../endpoints.js"
+import { deleteEntity, registerEntity, getFilterEntityData, getFilterEntityCount, getUserInfo, getEntitiesData, postNotificationPush, getEntityData, updateEntity } from "../../../../endpoints.js"
 import { inputObserver, inputSelect, CloseDialog, filterDataByHeaderType, pageNumbers, fillBtnPagination } from "../../../../tools.js"
 import { Data, InterfaceElement } from "../../../../types.js"
 import { Config } from "../../../../Configs.js"
@@ -18,59 +18,59 @@ let infoPage = {
 };
 let dataPage;
 const getTaskSporadic = async (): Promise<void> => {
-  //const currentUser = await getUserInfo()
- // currentUserInfo = await getEntityData('User', `${currentUser.attributes.id}`)
+    //const currentUser = await getUserInfo()
+    // currentUserInfo = await getEntityData('User', `${currentUser.attributes.id}`)
     let raw = JSON.stringify({
         "filter": {
             "conditions": [
-              {
-                "property": "customer.id",
-                "operator": "=",
-                "value": `${customerId}`
-              },
-              {
-                "property": "user.userType",
-                "operator": "=",
-                "value": `CUSTOMER`
-              },
-              {
-                "property": "taskType",
-                "operator": "=",
-                "value": "ESPORADICAS"
-              },
-            
-            ],
-            
-        }, 
-        sort: "+execDate",     
-        limit: Config.tableRows,
-        offset: infoPage.offset,
-    })
-    if(infoPage.search != ""){
-        raw = JSON.stringify({
-            "filter": {
-                "conditions": [
-                  {
-                    "group": "OR",
-                    "conditions": [
-                      {
-                        "property": "name",
-                        "operator": "contains",
-                        "value": `${infoPage.search.toLowerCase()}`
-                      }
-                    ]
-                  },
-                  {
+                {
                     "property": "customer.id",
                     "operator": "=",
                     "value": `${customerId}`
-                  }
+                },
+                {
+                    "property": "user.userType",
+                    "operator": "=",
+                    "value": `CUSTOMER`
+                },
+                {
+                    "property": "taskType",
+                    "operator": "=",
+                    "value": "ESPORADICAS"
+                },
+
+            ],
+
+        },
+        sort: "+execDate",
+        limit: Config.tableRows,
+        offset: infoPage.offset,
+    })
+    if (infoPage.search != "") {
+        raw = JSON.stringify({
+            "filter": {
+                "conditions": [
+                    {
+                        "group": "OR",
+                        "conditions": [
+                            {
+                                "property": "name",
+                                "operator": "contains",
+                                "value": `${infoPage.search.toLowerCase()}`
+                            }
+                        ]
+                    },
+                    {
+                        "property": "customer.id",
+                        "operator": "=",
+                        "value": `${customerId}`
+                    }
                 ]
-              },
+            },
             sort: "+execDate",
             limit: Config.tableRows,
             offset: infoPage.offset
-            
+
         })
     }
     infoPage.count = await getFilterEntityCount("Task_", raw)
@@ -88,7 +88,7 @@ export class Sporadic {
 
     private content: InterfaceElement =
         document.getElementById('datatable-container')
-  
+
 
     public async render(offset: any, actualPage: any, search: any): Promise<void> {
         infoPage.offset = offset;
@@ -98,26 +98,26 @@ export class Sporadic {
         this.content.innerHTML = tableLayout;
         const tableBody: InterfaceElement = document.getElementById('datatable-body');
         tableBody.innerHTML = '.Cargando...';
-        let data: any= await getTaskSporadic();
+        let data: any = await getTaskSporadic();
         tableBody.innerHTML = tableLayoutTemplate.repeat(tableRows);
         this.load(tableBody, currentPage, data);
         this.searchEntity(tableBody /*, data*/);
         new filterDataByHeaderType().filter();
         this.pagination(data, tableRows, infoPage.currentPage);
     }
-    public  openTasksModal(container: InterfaceElement, data: any) {
-      const view : InterfaceElement = document.querySelectorAll('#view-entity');
-          view.forEach((view: InterfaceElement) => {
-              const entityId = view.dataset.entityid;
-              view.addEventListener('click', () => {
-                  RInterface('Task_', entityId);
-              });
-          });
-         
-      const RInterface = async (entities: string, entityID: string): Promise<void> => {
-          const data = await getEntityData(entities, entityID);
-          const dialogContainer: InterfaceElement = document.getElementById('app-dialogs');
-          dialogContainer.innerHTML = `
+    public openTasksModal(container: InterfaceElement, data: any) {
+        const view: InterfaceElement = document.querySelectorAll('#view-entity');
+        view.forEach((view: InterfaceElement) => {
+            const entityId = view.dataset.entityid;
+            view.addEventListener('click', () => {
+                RInterface('Task_', entityId);
+            });
+        });
+
+        const RInterface = async (entities: string, entityID: string): Promise<void> => {
+            const data = await getEntityData(entities, entityID);
+            const dialogContainer: InterfaceElement = document.getElementById('app-dialogs');
+            dialogContainer.innerHTML = `
                 <div class="dialog_content" id="dialog-content">
                     <div class="dialog">
                         <div class="dialog_container padding_8" style="width:70%;position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);" id="modal">
@@ -143,16 +143,16 @@ export class Sporadic {
                 </div>
             </div>
               `;
-          const cancelBtnModal: InterfaceElement = document.getElementById('cancel-modal');
-          cancelBtnModal.addEventListener('click', () => {
-              
-          const dialog = document.getElementById('dialog-content');
-              new CloseDialog().x(dialog);
-      
-          
-          });
-      }
-  }
+            const cancelBtnModal: InterfaceElement = document.getElementById('cancel-modal');
+            cancelBtnModal.addEventListener('click', () => {
+
+                const dialog = document.getElementById('dialog-content');
+                new CloseDialog().x(dialog);
+
+
+            });
+        }
+    }
 
     public load(table: InterfaceElement, currentPage: number, data?: any) {
         table.innerHTML = ''
@@ -179,12 +179,12 @@ export class Sporadic {
           
                 <td>${taskSporadic.execDate}</dt>
       
-                <td>${taskSporadic.execTime}</dt>`;  
-                
-                row.innerHTML += `<td>${taskSporadic.isReadDate ?? ''} </dt>`; 
-                row.innerHTML += `<td>${taskSporadic.isReadTime ?? ''}</dt>`; 
-             
-      
+                <td>${taskSporadic.execTime}</dt>`;
+
+                row.innerHTML += `<td>${taskSporadic.isReadDate ?? ''} </dt>`;
+                row.innerHTML += `<td>${taskSporadic.isReadTime ?? ''}</dt>`;
+
+
                 row.innerHTML += `
                 <td class="entity_options">
                 <button class="button" id="view-entity" data-entityId="${taskSporadic.id}">
@@ -230,14 +230,14 @@ export class Sporadic {
             */
         })
         btnSearch.addEventListener('click', async () => {
-            new Sporadic().render(Config.offset , Config.currentPage, search.value.toLowerCase().trim())
+            new Sporadic().render(Config.offset, Config.currentPage, search.value.toLowerCase().trim())
         })
     }
 
     public register() {
         // register entity
         const openEditor: InterfaceElement = document.getElementById('new-entity')
-        openEditor.addEventListener('click', async(): Promise<void> => {
+        openEditor.addEventListener('click', async (): Promise<void> => {
             renderInterface()
         })
 
@@ -297,73 +297,77 @@ export class Sporadic {
             //inputSelect('Customer', 'entity-customer')
             this.close()
 
-
+            const agregarCeros = (numero: number) => {
+                return day < 10 ? `0${numero}` : numero;
+            };
             const registerButton: InterfaceElement = document.getElementById('register-entity')
             const fecha = new Date();
-            const day = fecha.getDate();
-            const month = fecha.getMonth() + 1; 
+            let day: any = fecha.getDate();
+            day = agregarCeros(day);
+            let month: any = fecha.getMonth() + 1;
+            month = agregarCeros(month);
             const year = fecha.getFullYear();
-  
+
             const dateFormat = year + '-' + month + '-' + day;
-            
+
             const hour = fecha.getHours();
-            const minutes  = fecha.getMinutes();
+            const minutes = fecha.getMinutes();
             const seconds = fecha.getSeconds();
-  
+
             const hourFormat = `${hour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-  
+
             registerButton.addEventListener('click', async (): Promise<void> => {
                 const inputsCollection: any = {
                     name: document.getElementById('entity-name'),
-                    description:  document.getElementById('entity-description'),
+                    description: document.getElementById('entity-description'),
                     customer: document.getElementById('entity-customer'),
                     executionDate: document.getElementById('execution-date'),
                     executionTime: document.getElementById('execution-time')
-           
+
                 }
                 let dateToday = new Date(dateFormat);
-                let dateExec = new Date(`${inputsCollection.executionDate.value}`); 
-                let horusInstant = new Date( `${dateFormat}T${hourFormat}`);
+                let dateExec = new Date(`${inputsCollection.executionDate.value}`);
+                let horusInstant = new Date(`${dateFormat}T${hourFormat}`);
                 let horusExec = new Date(`${dateFormat}T${inputsCollection.executionTime.value}`);
-                let _userInfo:any =  await getUserInfo();
-                  const customerId = localStorage.getItem('customer_id');
-                  //console.log(inputsCollection.executionDate.value)
-                  const raw = JSON.stringify({
-                      "taskType": `ESPORADICAS`,
-                      "name": `${inputsCollection.name.value}`,
-                      "description": `${inputsCollection.description.value}`,
-                      "execDate": `${inputsCollection.executionDate.value}`,
-                      "user":  {
+                let _userInfo: any = await getUserInfo();
+                const customerId = localStorage.getItem('customer_id');
+                //console.log(inputsCollection.executionDate.value)
+                const raw = JSON.stringify({
+                    "taskType": `ESPORADICAS`,
+                    "name": `${inputsCollection.name.value}`,
+                    "description": `${inputsCollection.description.value}`,
+                    "execDate": `${inputsCollection.executionDate.value}`,
+                    "user": {
                         "id": `${_userInfo.attributes.id}`
-                      },   
-                      "customer": {
-                          "id": `${customerId}`
-                      },
-                      "execTime":`${inputsCollection.executionTime.value}`,
-                      "startTime": `${hourFormat}`,
-                      "startDate": `${dateFormat}`,
-                      
-                    });
-                if(`${inputsCollection.name.value.trim()}` === '' ||`${inputsCollection.name.value.trim()}` === null){
-                  alert('Nombre del consigna general vacío')
+                    },
+                    "customer": {
+                        "id": `${customerId}`
+                    },
+                    "execTime": `${inputsCollection.executionTime.value}`,
+                    "startTime": `${hourFormat}`,
+                    "startDate": `${dateFormat}`,
+
+                });
+                if (`${inputsCollection.name.value.trim()}` === '' || `${inputsCollection.name.value.trim()}` === null) {
+                    alert('Nombre del consigna general vacío')
                 }
-                else if(`${inputsCollection.executionDate.value.trim()}` === '' || `${inputsCollection.executionDate.value.trim()}` === null){
-                  alert('Debe especificar la fecha de la consigna')
+                else if (`${inputsCollection.executionDate.value.trim()}` === '' || `${inputsCollection.executionDate.value.trim()}` === null) {
+                    alert('Debe especificar la fecha de la consigna')
                 }
-                else if(dateToday > dateExec){
-                  alert('La fecha no puede ser menor a la del día de hoy')
+                else if (dateToday > dateExec) {
+                    alert('La fecha no puede ser menor a la del día de hoy')
                 }
-  
-                else if(`${inputsCollection.executionTime.value.trim()}` === '' || `${inputsCollection.executionTime.value.trim()}` === null){
-                  alert('Debe especificar la hora de ejecución de la consigna')
+
+                else if (`${inputsCollection.executionTime.value.trim()}` === '' || `${inputsCollection.executionTime.value.trim()}` === null) {
+                    alert('Debe especificar la hora de ejecución de la consigna')
                 }
                 //COMPARANDO LAS HORAS DEL MISMO DIA
-                else if(dateToday.getTime() == dateExec.getTime() && (horusInstant > horusExec)){
-                  alert('La hora no puede ser menor a la actual')
-                  
+                else if (dateToday.getTime() == dateExec.getTime() && (horusInstant > horusExec)) {
+                    alert('La hora no puede ser menor a la actual')
+
                 }
-                else{
-                 
+                else {
+
                     reg(raw);
                     let rawUser = JSON.stringify({
                         "filter": {
@@ -391,59 +395,59 @@ export class Sporadic {
                             ],
                         },
                     });
-                    const dataUser= await getFilterEntityData("User", rawUser);                           
-                    for(let i =0; i<dataUser.length;i++){
-                        
-                        const data = {"token":dataUser[i]['token'],"title": "Específica", "body":`${inputsCollection.name.value}`  }
+                    const dataUser = await getFilterEntityData("User", rawUser);
+                    for (let i = 0; i < dataUser.length; i++) {
+
+                        const data = { "token": dataUser[i]['token'], "title": "Específica", "body": `${inputsCollection.name.value}` }
                         const envioPush = await postNotificationPush(data);
                     }
-                   
-                } 
-    
-                 
+
+                }
+
+
             });
-          
-            
-              const reg = async (raw:any) => {
-                  registerEntity(raw, 'Task_')
-                      .then((res) => {
-                      setTimeout(async () => {
-                          //let data = await getUsers();
-                          const tableBody = document.getElementById('datatable-body');
-                          const container = document.getElementById('entity-editor-container');
-                          new CloseDialog().x(container);
-                          new Sporadic().render(Config.offset, Config.currentPage, infoPage.search);
-                      }, 1000);
-                  });
-              };    
+
+
+            const reg = async (raw: any) => {
+                registerEntity(raw, 'Task_')
+                    .then((res) => {
+                        setTimeout(async () => {
+                            //let data = await getUsers();
+                            const tableBody = document.getElementById('datatable-body');
+                            const container = document.getElementById('entity-editor-container');
+                            new CloseDialog().x(container);
+                            new Sporadic().render(Config.offset, Config.currentPage, infoPage.search);
+                        }, 1000);
+                    });
+            };
         };
-       
+
     }
     public edit(container: InterfaceElement, data: any) {
-      // Edit entity
-      const fecha = new Date();
-      const day = fecha.getDate();
-      const month = fecha.getMonth() + 1; 
-      const year = fecha.getFullYear();
+        // Edit entity
+        const fecha = new Date();
+        const day = fecha.getDate();
+        const month = fecha.getMonth() + 1;
+        const year = fecha.getFullYear();
 
-      const dateFormat = year + '-' + month + '-' + day;
-      let dateToday = new Date(dateFormat);
-      const edit: InterfaceElement = document.querySelectorAll('#edit-entity')
-      edit.forEach((edit: InterfaceElement) => {
-          const entityId = edit.dataset.entityid
-          edit.addEventListener('click', (): void => {
-              RInterface('Task_', entityId)
-          })
-      })
+        const dateFormat = year + '-' + month + '-' + day;
+        let dateToday = new Date(dateFormat);
+        const edit: InterfaceElement = document.querySelectorAll('#edit-entity')
+        edit.forEach((edit: InterfaceElement) => {
+            const entityId = edit.dataset.entityid
+            edit.addEventListener('click', (): void => {
+                RInterface('Task_', entityId)
+            })
+        })
 
-      const RInterface = async (entities: string, entityID: string): Promise<void> => {
-          const data: any = await getEntityData(entities, entityID)
-          const executionDate = data.execDate;
-          
-          let dateExec = new Date(executionDate);
-          this.entityDialogContainer.innerHTML = ''
-          this.entityDialogContainer.style.display = 'flex'
-          this.entityDialogContainer.innerHTML = `
+        const RInterface = async (entities: string, entityID: string): Promise<void> => {
+            const data: any = await getEntityData(entities, entityID)
+            const executionDate = data.execDate;
+
+            let dateExec = new Date(executionDate);
+            this.entityDialogContainer.innerHTML = ''
+            this.entityDialogContainer.style.display = 'flex'
+            this.entityDialogContainer.innerHTML = `
           <div class="entity_editor" id="entity-editor">
           <div class="entity_editor_header">
               <div class="user_info">
@@ -485,165 +489,170 @@ export class Sporadic {
           </div>
           </div>
           `;
-          
-          if(dateToday >= dateExec){
-            let updateButton: InterfaceElement
-            updateButton = document.getElementById('update-changes');
-           
-            const nombre: InterfaceElement = document.getElementById("entity-name")
-            nombre.disabled=true;
-            const description: InterfaceElement = document.getElementById("entity-description")
-            description.disabled=true;
-            const fecha: InterfaceElement = document.getElementById("execution-date")
-            fecha.disabled=true;
-            const tiempo: InterfaceElement = document.getElementById("execution-time")
-            tiempo.disabled=true;
-            updateButton  = document.getElementById("update-changes")
-            updateButton.disabled=true;
-           
-          }
-          inputObserver();
-          
-          this.close();
-          UUpdate(entityID);
-        };  
-          
-          const UUpdate = async (entityId:any) => {
+
+            if (dateToday >= dateExec) {
+                let updateButton: InterfaceElement
+                updateButton = document.getElementById('update-changes');
+
+                const nombre: InterfaceElement = document.getElementById("entity-name")
+                nombre.disabled = true;
+                const description: InterfaceElement = document.getElementById("entity-description")
+                description.disabled = true;
+                const fecha: InterfaceElement = document.getElementById("execution-date")
+                fecha.disabled = true;
+                const tiempo: InterfaceElement = document.getElementById("execution-time")
+                tiempo.disabled = true;
+                updateButton = document.getElementById("update-changes")
+                updateButton.disabled = true;
+
+            }
+            inputObserver();
+
+            this.close();
+            UUpdate(entityID);
+        };
+
+        const UUpdate = async (entityId: any) => {
             let updateButton: InterfaceElement
             updateButton = document.getElementById('update-changes');
             console.log(updateButton)
             const $value: any = {
-              // @ts-ignore
-              name: document.getElementById('entity-name'),
-              description: document.getElementById('entity-description'),
-              // @ts-ignore
-              execDate : document.getElementById('execution-date'),
-              execTime: document.getElementById('execution-time'),
-              // @ts-ignore
-             
-             
-          };
-            updateButton.addEventListener('click', async (): Promise<void> => {
-              //e.preventDefault()
-              let name: InterfaceElement
-               name = document.getElementById('entity-name')
-              
-              
-              let executionDate: InterfaceElement
-              executionDate= document.getElementById('execution-date')
-              let executionTime: InterfaceElement
-              executionTime= document.getElementById('execution-time')
-              const fecha = new Date();
-              const day = fecha.getDate();
-              const month = fecha.getMonth() + 1; 
-              const year = fecha.getFullYear();
-  
-              const dateFormat = year + '-' + month + '-' + day;
-              const hour = fecha.getHours();
-              const minutes  = fecha.getMinutes();
-              const seconds = fecha.getSeconds();
-  
-              const hourFormat = `${hour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-               
-              let dateToday = new Date(dateFormat);
-              let dateExec = new Date(`${executionDate.value}`); 
-              let horusInstant = new Date( `${dateFormat}T${hourFormat}`);
-              let horusExec = new Date(`${dateFormat}T${executionTime.value}`);
-              //console.log(hourFormat)
-              //console.log(executionTime.value)
-               
-              if(`${name.value.trim()}` === '' ||`${name.value.trim()}` === null){
-                alert('Nombre del consigna general vacío')
-              }
-              else if(`${executionDate.value.trim()}` === '' || `${executionDate.value.trim()}` === null){
-                alert('Debe especificar la fecha de la consigna')
-              }
-              else if(dateToday > dateExec){
-                alert('La fecha no puede ser menor a la del día de hoy')
-              }
+                // @ts-ignore
+                name: document.getElementById('entity-name'),
+                description: document.getElementById('entity-description'),
+                // @ts-ignore
+                execDate: document.getElementById('execution-date'),
+                execTime: document.getElementById('execution-time'),
+                // @ts-ignore
 
-              else if(`${executionTime.value.trim()}` === '' || `${executionTime.value.trim()}` === null){
-                alert('Debe especificar la hora de ejecución de la consigna')
-              }
-              //COMPARANDO LAS HORAS DEL MISMO DIA
-              else if(dateToday.getTime() == dateExec.getTime() && (horusInstant > horusExec)){
-                alert('La hora no puede ser menor a la actual')
-                
-              }
-           
-              else{
-                let raw :string  = JSON.stringify({
-                    // @ts-ignore
-                    "name": `${$value.name.value}`,
-                    // @ts-ignore
-                    "description": `${$value.description.value}`,
-                    // @ts-ignore
-                    "execDate": `${$value.execDate.value}`,
-                    // @ts-ignore
-                    "execTime": `${$value.execTime.value}`,
-                    "isRead": false
-                });
-                update(raw);
-              }
+
+            };
+            updateButton.addEventListener('click', async (): Promise<void> => {
+                //e.preventDefault()
+                let name: InterfaceElement
+                name = document.getElementById('entity-name')
+
+        
+                let executionDate: InterfaceElement
+                executionDate = document.getElementById('execution-date')
+                let executionTime: InterfaceElement
+                executionTime = document.getElementById('execution-time')
+                const agregarCeros = (numero: number) => {
+                    return day < 10 ? `0${numero}` : numero;
+                };
+                const fecha = new Date();
+                let day: any = fecha.getDate();
+                day = (day);
+                let month: any = fecha.getMonth() + 1;
+                month = agregarCeros(month);
+                const year = fecha.getFullYear();
+
+                const dateFormat = year + '-' + month + '-' + day;
+                const hour = fecha.getHours();
+                const minutes = fecha.getMinutes();
+                const seconds = fecha.getSeconds();
+
+                const hourFormat = `${hour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+                let dateToday = new Date(dateFormat);
+                let dateExec = new Date(`${executionDate.value}`);
+                let horusInstant = new Date(`${dateFormat}T${hourFormat}`);
+                let horusExec = new Date(`${dateFormat}T${executionTime.value}`);
+                //console.log(hourFormat)
+                //console.log(executionTime.value)
+
+                if (`${name.value.trim()}` === '' || `${name.value.trim()}` === null) {
+                    alert('Nombre del consigna general vacío')
+                }
+                else if (`${executionDate.value.trim()}` === '' || `${executionDate.value.trim()}` === null) {
+                    alert('Debe especificar la fecha de la consigna')
+                }
+                else if (dateToday > dateExec) {
+                    alert('La fecha no puede ser menor a la del día de hoy')
+                }
+
+                else if (`${executionTime.value.trim()}` === '' || `${executionTime.value.trim()}` === null) {
+                    alert('Debe especificar la hora de ejecución de la consigna')
+                }
+                //COMPARANDO LAS HORAS DEL MISMO DIA
+                else if (dateToday.getTime() == dateExec.getTime() && (horusInstant > horusExec)) {
+                    alert('La hora no puede ser menor a la actual')
+
+                }
+
+                else {
+                    let raw: string = JSON.stringify({
+                        // @ts-ignore
+                        "name": `${$value.name.value}`,
+                        // @ts-ignore
+                        "description": `${$value.description.value}`,
+                        // @ts-ignore
+                        "execDate": `${$value.execDate.value}`,
+                        // @ts-ignore
+                        "execTime": `${$value.execTime.value}`,
+                        "isRead": false
+                    });
+                    update(raw);
+                }
             });
             /**
-             * Update entity and execute functions to finish defying user
-             * @param raw
-             */
-          const update = async (raw:any) => {
-            updateEntity('Task_', entityId, raw)
-                .then((res) => {
-                setTimeout(async () => {
-                    let tableBody;
-                    let container;
-                    let data;
-                    tableBody = document.getElementById('datatable-body');
-                    container = document.getElementById('entity-editor-container');
-                    //data = await getUsers();
-                    new CloseDialog().x(container);
-                    new Sporadic().render(infoPage.offset, infoPage.currentPage, infoPage.search);
-                }, 100);
-            });
-        
-          
-            let rawUser = JSON.stringify({
-                "filter": {
-                    "conditions": [
-                        {
-                            "property": "customer.id",
-                            "operator": "=",
-                            "value": `${customerId}`
-                        },
-                        {
-                            "property": "userType",
-                            "operator": "=",
-                            "value": `GUARD`
-                        },
-                        {
-                            "property": "state.name",
-                            "operator": "=",
-                            "value": `Enabled`
-                        },
-                        {
-                            "property": "token",
-                            "operator": "<>",
-                            "value": ``
-                        }
-                    ],
-                },
-            });
-            const dataUser= await getFilterEntityData("User", rawUser);                           
-            for(let i =0; i<dataUser.length;i++){
-                
-                const data = {"token":dataUser[i]['token'],"title": "Específica", "body":`${$value.name.value}`  }
-                const envioPush = await postNotificationPush(data);
-            }
+         * Update entity and execute functions to finish defying user
+         * @param raw
+         */
+            const update = async (raw: any) => {
+                updateEntity('Task_', entityId, raw)
+                    .then((res) => {
+                        setTimeout(async () => {
+                            let tableBody;
+                            let container;
+                            let data;
+                            tableBody = document.getElementById('datatable-body');
+                            container = document.getElementById('entity-editor-container');
+                            //data = await getUsers();
+                            new CloseDialog().x(container);
+                            new Sporadic().render(infoPage.offset, infoPage.currentPage, infoPage.search);
+                        }, 100);
+                    });
+
+
+                let rawUser = JSON.stringify({
+                    "filter": {
+                        "conditions": [
+                            {
+                                "property": "customer.id",
+                                "operator": "=",
+                                "value": `${customerId}`
+                            },
+                            {
+                                "property": "userType",
+                                "operator": "=",
+                                "value": `GUARD`
+                            },
+                            {
+                                "property": "state.name",
+                                "operator": "=",
+                                "value": `Enabled`
+                            },
+                            {
+                                "property": "token",
+                                "operator": "<>",
+                                "value": ``
+                            }
+                        ],
+                    },
+                });
+                const dataUser = await getFilterEntityData("User", rawUser);
+                for (let i = 0; i < dataUser.length; i++) {
+
+                    const data = { "token": dataUser[i]['token'], "title": "Específica", "body": `${$value.name.value}` }
+                    const envioPush = await postNotificationPush(data);
+                }
+            };
+
+
         };
-        
-        
-      };
     }
-   
+
     public remove() {
         const remove: InterfaceElement = document.querySelectorAll('#remove-entity')
         remove.forEach((remove: InterfaceElement) => {
@@ -680,16 +689,16 @@ export class Sporadic {
                 const cancelButton: InterfaceElement = document.getElementById('cancel')
                 const dialogContent: InterfaceElement = document.getElementById('dialog-content')
 
-                deleteButton.onclick = async() => {
+                deleteButton.onclick = async () => {
                     deleteEntity('Task_', entityId)
-                    .then((res) => {
-                        setTimeout(async () => {
-                            //let data = await getUsers();
-                            const tableBody = document.getElementById('datatable-body');
-                            new CloseDialog().x(dialogContent);
-                            new Sporadic().render(infoPage.offset, infoPage.currentPage, infoPage.search);
-                        }, 1000);
-                    });
+                        .then((res) => {
+                            setTimeout(async () => {
+                                //let data = await getUsers();
+                                const tableBody = document.getElementById('datatable-body');
+                                new CloseDialog().x(dialogContent);
+                                new Sporadic().render(infoPage.offset, infoPage.currentPage, infoPage.search);
+                            }, 1000);
+                        });
                 };
                 cancelButton.onclick = () => {
                     new CloseDialog().x(dialogContent);
@@ -719,24 +728,24 @@ export class Sporadic {
 
         let button: InterfaceElement
 
-        if(pageCount <= Config.maxLimitPage){
-          for (let i = 1; i < pageCount + 1; i++) {
-              button = setupButtons(
-                  i /*, items, currentPage, tableBody, limitRows*/
-              )
+        if (pageCount <= Config.maxLimitPage) {
+            for (let i = 1; i < pageCount + 1; i++) {
+                button = setupButtons(
+                    i /*, items, currentPage, tableBody, limitRows*/
+                )
 
-              paginationWrapper.appendChild(button)
-          }
-          fillBtnPagination(currentPage, Config.colorPagination)
-        }else{
-            pagesOptions(items, currentPage)  
+                paginationWrapper.appendChild(button)
+            }
+            fillBtnPagination(currentPage, Config.colorPagination)
+        } else {
+            pagesOptions(items, currentPage)
         }
 
         function setupButtons(page: any /*, items: any, currentPage: number, tableBody: InterfaceElement, limitRows: number*/) {
             const button: InterfaceElement = document.createElement('button')
             button.classList.add('pagination_button')
             button.setAttribute("name", "pagination-button")
-            button.setAttribute("id", "btnPag"+page)
+            button.setAttribute("id", "btnPag" + page)
             button.innerText = page
 
             button.addEventListener('click', (): void => {
@@ -748,49 +757,49 @@ export class Sporadic {
             return button
         }
 
-      function pagesOptions(items: any, currentPage: any) {
-          paginationWrapper.innerHTML = ''
-          let pages = pageNumbers(items, Config.maxLimitPage, currentPage)
-          
-          const prevButton: InterfaceElement = document.createElement('button')
-          prevButton.classList.add('pagination_button')
-          prevButton.innerText = "<<"     
-          paginationWrapper.appendChild(prevButton)
+        function pagesOptions(items: any, currentPage: any) {
+            paginationWrapper.innerHTML = ''
+            let pages = pageNumbers(items, Config.maxLimitPage, currentPage)
 
-          const nextButton: InterfaceElement = document.createElement('button')
-          nextButton.classList.add('pagination_button')
-          nextButton.innerText = ">>"
-  
-          for (let i = 0; i < pages.length; i++) {
-              if(pages[i] > 0 && pages[i] <= pageCount){
-                  button = setupButtons(
-                      pages[i]
-                  )
-                  paginationWrapper.appendChild(button)
-              }
-          }
-          paginationWrapper.appendChild(nextButton)
-          fillBtnPagination(currentPage, Config.colorPagination)
-          setupButtonsEvents(prevButton, nextButton)
-      }
+            const prevButton: InterfaceElement = document.createElement('button')
+            prevButton.classList.add('pagination_button')
+            prevButton.innerText = "<<"
+            paginationWrapper.appendChild(prevButton)
 
-      function setupButtonsEvents(prevButton: InterfaceElement, nextButton: InterfaceElement) {
-          prevButton.addEventListener('click', (): void => {
-            new Sporadic().render(Config.offset, Config.currentPage, infoPage.search)
-          })
+            const nextButton: InterfaceElement = document.createElement('button')
+            nextButton.classList.add('pagination_button')
+            nextButton.innerText = ">>"
 
-          nextButton.addEventListener('click', (): void => {
-            infoPage.offset = Config.tableRows * (pageCount - 1)
-            new Sporadic().render(infoPage.offset, pageCount, infoPage.search)
-          })
-      }
+            for (let i = 0; i < pages.length; i++) {
+                if (pages[i] > 0 && pages[i] <= pageCount) {
+                    button = setupButtons(
+                        pages[i]
+                    )
+                    paginationWrapper.appendChild(button)
+                }
+            }
+            paginationWrapper.appendChild(nextButton)
+            fillBtnPagination(currentPage, Config.colorPagination)
+            setupButtonsEvents(prevButton, nextButton)
+        }
+
+        function setupButtonsEvents(prevButton: InterfaceElement, nextButton: InterfaceElement) {
+            prevButton.addEventListener('click', (): void => {
+                new Sporadic().render(Config.offset, Config.currentPage, infoPage.search)
+            })
+
+            nextButton.addEventListener('click', (): void => {
+                infoPage.offset = Config.tableRows * (pageCount - 1)
+                new Sporadic().render(infoPage.offset, pageCount, infoPage.search)
+            })
+        }
     }
 
     private export = () => {
-      const exportNotes : InterfaceElement = document.getElementById('export-entities');
-      exportNotes.addEventListener('click', async() => {
-          this.dialogContainer.style.display = 'block';
-          this.dialogContainer.innerHTML = `
+        const exportNotes: InterfaceElement = document.getElementById('export-entities');
+        exportNotes.addEventListener('click', async () => {
+            this.dialogContainer.style.display = 'block';
+            this.dialogContainer.innerHTML = `
               <div class="dialog_content" id="dialog-content">
                   <div class="dialog">
                       <div class="dialog_container padding_8">
@@ -832,86 +841,86 @@ export class Sporadic {
                   </div>
               </div>
           `;
-          let fecha = new Date(); //Fecha actual
-          let mes: any = fecha.getMonth()+1; //obteniendo mes
-          let dia: any = fecha.getDate(); //obteniendo dia
-          let anio: any= fecha.getFullYear(); //obteniendo año
-          if(dia<10)
-              dia='0'+dia; //agrega cero si el menor de 10
-          if(mes<10)
-              mes='0'+mes //agrega cero si el menor de 10
-          // @ts-ignore
-          document.getElementById("start-date").value = anio+"-"+mes+"-"+dia;
-          // @ts-ignore
-          document.getElementById("end-date").value = anio+"-"+mes+"-"+dia;
-          inputObserver();
-          const _closeButton: InterfaceElement = document.getElementById('cancel');
-          const exportButton : InterfaceElement= document.getElementById('export-data');
-          const _dialog = document.getElementById('dialog-content');
-          exportButton.addEventListener('click', async() => {
-              const _values : any = {
-                  start: document.getElementById('start-date'),
-                  end: document.getElementById('end-date'),
-                  exportOption: document.getElementsByName('exportOption')
-              }
-              let rawExport = JSON.stringify({
-                  "filter": {
-                      "conditions": [
+            let fecha = new Date(); //Fecha actual
+            let mes: any = fecha.getMonth() + 1; //obteniendo mes
+            let dia: any = fecha.getDate(); //obteniendo dia
+            let anio: any = fecha.getFullYear(); //obteniendo año
+            if (dia < 10)
+                dia = '0' + dia; //agrega cero si el menor de 10
+            if (mes < 10)
+                mes = '0' + mes //agrega cero si el menor de 10
+            // @ts-ignore
+            document.getElementById("start-date").value = anio + "-" + mes + "-" + dia;
+            // @ts-ignore
+            document.getElementById("end-date").value = anio + "-" + mes + "-" + dia;
+            inputObserver();
+            const _closeButton: InterfaceElement = document.getElementById('cancel');
+            const exportButton: InterfaceElement = document.getElementById('export-data');
+            const _dialog = document.getElementById('dialog-content');
+            exportButton.addEventListener('click', async () => {
+                const _values: any = {
+                    start: document.getElementById('start-date'),
+                    end: document.getElementById('end-date'),
+                    exportOption: document.getElementsByName('exportOption')
+                }
+                let rawExport = JSON.stringify({
+                    "filter": {
+                        "conditions": [
                             {
-                              "property": "taskType",
-                              "operator": "=",
-                              "value": `ESPORADICAS`
-                          },
-                          {
-                            "property": "user.userType",
-                            "operator": "=",
-                            "value": `CUSTOMER`
-                          },
-                          {
-                              "property": "customer.id",
-                              "operator": "=",
-                              "value": `${customerId}`
-                          },
-                          {
-                              "property": "execDate",
-                              "operator": ">=",
-                              "value": `${_values.start.value}`
-                          },
-                          {
-                              "property": "execDate",
-                              "operator": "<=",
-                              "value": `${_values.end.value}`
-                          }
-                      ],
-                  },
-                  sort: "+execDate",
-                  fetchPlan: 'full',
-              });
-              const sporadic = await getFilterEntityData("Task_", rawExport); 
-              for (let i = 0; i < _values.exportOption.length; i++) {
-                  let ele = _values.exportOption[i];
-                  if (ele.type = "radio") {
-                      if (ele.checked) {
-                          if (ele.value == "xls") {
-                              // @ts-ignore
-                              exportSporadicXls(sporadic, _values.start.value, _values.end.value);
-                          }
-                          else if (ele.value == "csv") {
-                              // @ts-ignore
-                              exportSporadicCsv(sporadic, _values.start.value, _values.end.value);
-                          }
-                          else if (ele.value == "pdf") {
-                              // @ts-ignore
-                              exportSporadicPdf(sporadic, _values.start.value, _values.end.value);
-                          }
-                      }
-                  }
-              }
-          });
-          _closeButton.onclick = () => {
-              new CloseDialog().x(_dialog);
-          };
-      });
-  };
+                                "property": "taskType",
+                                "operator": "=",
+                                "value": `ESPORADICAS`
+                            },
+                            {
+                                "property": "user.userType",
+                                "operator": "=",
+                                "value": `CUSTOMER`
+                            },
+                            {
+                                "property": "customer.id",
+                                "operator": "=",
+                                "value": `${customerId}`
+                            },
+                            {
+                                "property": "execDate",
+                                "operator": ">=",
+                                "value": `${_values.start.value}`
+                            },
+                            {
+                                "property": "execDate",
+                                "operator": "<=",
+                                "value": `${_values.end.value}`
+                            }
+                        ],
+                    },
+                    sort: "+execDate",
+                    fetchPlan: 'full',
+                });
+                const sporadic = await getFilterEntityData("Task_", rawExport);
+                for (let i = 0; i < _values.exportOption.length; i++) {
+                    let ele = _values.exportOption[i];
+                    if (ele.type = "radio") {
+                        if (ele.checked) {
+                            if (ele.value == "xls") {
+                                // @ts-ignore
+                                exportSporadicXls(sporadic, _values.start.value, _values.end.value);
+                            }
+                            else if (ele.value == "csv") {
+                                // @ts-ignore
+                                exportSporadicCsv(sporadic, _values.start.value, _values.end.value);
+                            }
+                            else if (ele.value == "pdf") {
+                                // @ts-ignore
+                                exportSporadicPdf(sporadic, _values.start.value, _values.end.value);
+                            }
+                        }
+                    }
+                }
+            });
+            _closeButton.onclick = () => {
+                new CloseDialog().x(_dialog);
+            };
+        });
+    };
 }
 
