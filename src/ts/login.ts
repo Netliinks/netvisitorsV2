@@ -151,7 +151,7 @@ export class SignIn {
                                 "value": `Enabled`
                               },
                               {
-                                "property": "customer.state.name",
+                                "property": "state.name",
                                 "operator": "=",
                                 "value": `Enabled`
                               },

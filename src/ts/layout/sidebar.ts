@@ -22,6 +22,7 @@ import { Binnacle } from "../views/binnacle/binnacle/BinnacleView.js";
 import { Blacklist } from "../views/users/blacklist/blacklist.js"
 import { Vehiculars } from "../views/binnacle/vehiculars/Vehiculars.js"
 import { Sporadic } from "../views/assignment/tasks/sporadic/Sporadic.js";
+import { currentDateTime } from "../tools.js"
 export class Sidebar {
     private sidebarContainer: InterfaceElement = document.getElementById('app-sidebar')
     public render(): void {
@@ -245,7 +246,7 @@ export class Sidebar {
             new AssistControl().render(Config.offset, Config.currentPage, "")
         })
         document.getElementById('render-assistGestion')?.addEventListener('click', () => {
-          new AssistGestion().render();
+          new AssistGestion().render("", currentDateTime().date);
         });
         // render AssistControl
         document.getElementById('render-events')?.addEventListener('click', (): void => {
