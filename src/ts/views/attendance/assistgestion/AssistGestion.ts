@@ -411,41 +411,4 @@ export class AssistGestion {
         }
     }
 
-    private previewZoom = async (arrayImages: any): Promise<void> => {
-        const openButtons: InterfaceElement = document.querySelectorAll('#entity-details-zoom')
-        openButtons.forEach((openButton: InterfaceElement) => {
-            const entityId: string = openButton.dataset.entityid
-            openButton.addEventListener('click', (): void => {
-
-                renderInterfaceZoom(entityId, arrayImages)
-            })
-        })
-
-        const renderInterfaceZoom = async (entity: string, arrayImages: any): Promise<void> => {
-            let description = ''
-            for(let i = 0; i < arrayImages.length; i++){
-                if(arrayImages[i].id == entity){
-                    description = arrayImages[i].description
-                }
-            }
-            
-            const picture: InterfaceElement = document.getElementsByName(`${entity}`)
-            const close: InterfaceElement = document.getElementById("close-modalZoom");
-            const modalZoom: InterfaceElement = document.getElementById('modalZoom')
-            const editor: InterfaceElement = document.getElementById('entity-editor-container')
-            editor.style.display = 'none'
-            const img01: InterfaceElement = document.getElementById('img01')
-            const caption: InterfaceElement = document.getElementById('caption')
-            modalZoom.style.display = 'block'
-            img01.src = picture[0].currentSrc
-            caption.innerHTML = `${description}`
-
-            close.addEventListener('click', (): void => {
-                modalZoom.style.display = 'none'
-                const editor: InterfaceElement = document.getElementById('entity-editor-container')
-                editor.style.display = 'flex'
-            })
-        }
-    }
-
 }
