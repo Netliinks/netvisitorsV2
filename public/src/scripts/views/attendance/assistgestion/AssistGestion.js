@@ -32,6 +32,11 @@ const GetAssistControl = async () => {
                     "property": "customer.id",
                     "operator": "=",
                     "value": `${customerId}`
+                },
+                {
+                    "property": "ingressDate",
+                    "operator": "=",
+                    "value": `${infoPage.date}`
                 }
             ],
         },
