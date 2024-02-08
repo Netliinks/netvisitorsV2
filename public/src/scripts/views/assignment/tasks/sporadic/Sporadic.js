@@ -60,7 +60,17 @@ const getTaskSporadic = async () => {
                         "property": "customer.id",
                         "operator": "=",
                         "value": `${customerId}`
-                    }
+                    },
+                    {
+                        "property": "user.userType",
+                        "operator": "=",
+                        "value": `CUSTOMER`
+                    },
+                    {
+                        "property": "taskType",
+                        "operator": "=",
+                        "value": "ESPORADICAS"
+                    },
                 ]
             },
             sort: "+execDate",

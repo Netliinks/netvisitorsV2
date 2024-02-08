@@ -198,6 +198,7 @@ export const registerEntity = async (raw: any, type: string): Endpoint => {
 
     fetch(req.url + type, requestOptions)
         .then(res => res.json())
+        .catch(err => console.error('Error:' + err))
 }
 
 
