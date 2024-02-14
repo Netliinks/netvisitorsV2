@@ -408,7 +408,7 @@ export class Sporadic {
             //inputSelect('Customer', 'entity-customer')
             this.close();
             const agregarCeros = (numero) => {
-                return day < 10 ? `0${numero}` : numero;
+                return numero < 10 ? `0${numero}` : numero;
             };
             const registerButton = document.getElementById('register-entity');
             const fecha = new Date();
@@ -620,7 +620,7 @@ export class Sporadic {
                 let executionTime;
                 executionTime = document.getElementById('execution-time');
                 const agregarCeros = (numero) => {
-                    return day < 10 ? `0${numero}` : numero;
+                    return numero < 10 ? `0${numero}` : numero;
                 };
                 const fecha = new Date();
                 let day = fecha.getDate();
