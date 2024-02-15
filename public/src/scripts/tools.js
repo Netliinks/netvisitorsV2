@@ -375,7 +375,8 @@ export const currentDateTime = () => {
     const _fixedHours = ('0' + _hours).slice(-2);
     const _fixedMinutes = ('0' + _minutes).slice(-2);
     const _fixedSeconds = ('0' + _seconds).slice(-2);
-    const currentTime = `${_fixedHours}:${_fixedMinutes}:${_fixedSeconds}`;
+    const currentTimeHHMMSS = `${_fixedHours}:${_fixedMinutes}:${_fixedSeconds}`;
+    const currentTimeHHMM = `${_fixedHours}:${_fixedMinutes}`;
     // DATE
     const _day = _date.getDate();
     const _month = _date.getMonth() + 1;
@@ -383,7 +384,8 @@ export const currentDateTime = () => {
     const date = `${_year}-${('0' + _month).slice(-2)}-${('0' + _day).slice(-2)}`;
     return {
         date: date,
-        time: currentTime
+        timeHHMMSS: currentTimeHHMMSS,
+        timeHHMM: currentTimeHHMM
     };
 };
 export const calculateGestionMarcation = (assistControl) => {
@@ -447,4 +449,25 @@ export const calculateGestionMarcation = (assistControl) => {
         arrayAssist.push(obj);
     }
     return arrayAssist;
+};
+export const searchUniversalSingle = async (param, operator, value, table) => {
+    const raw = JSON.stringify({
+        "filter": {
+            "conditions": [
+                {
+                    "property": `${param}`,
+                    "operator": `${operator}`,
+                    "value": `${value}`
+                },
+            ]
+        },
+        sort: "-createdDate",
+    });
+    const data = await getFilterEntityData(`${table}`, raw);
+    if (data == undefined || data.length == 0) {
+        console.log(`${param} ${value} no obtenido(a)`);
+    }
+    else {
+        return data;
+    }
 };
