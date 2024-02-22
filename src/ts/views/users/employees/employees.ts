@@ -1242,6 +1242,11 @@ export async function setUserPassword(): Promise<any> {
                 "property": "newUser",
                 "operator": "=",
                 "value": `${true}`
+              },
+              {
+                "property": "temp",
+                "operator": "<>",
+                "value": ``
               }
             ]
         }
@@ -1286,6 +1291,11 @@ export async function setRole(): Promise<void> {
                 "property": "userType",
                 "operator": "=",
                 "value": `EMPLOYEE`
+              },
+              {
+                "property": "temp",
+                "operator": "<>",
+                "value": ``
               }
             ]
         }

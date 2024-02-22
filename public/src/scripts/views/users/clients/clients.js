@@ -1202,6 +1202,11 @@ export const setUserPassword = async () => {
                     "property": "newUser",
                     "operator": "=",
                     "value": `${true}`
+                },
+                {
+                    "property": "temp",
+                    "operator": "<>",
+                    "value": ``
                 }
             ]
         }
@@ -1244,6 +1249,11 @@ export async function setRole() {
                     "property": "userType",
                     "operator": "=",
                     "value": `CUSTOMER`
+                },
+                {
+                    "property": "temp",
+                    "operator": "<>",
+                    "value": ``
                 }
             ]
         }
