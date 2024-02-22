@@ -155,7 +155,7 @@ export class Clients {
 
     private load(table: InterfaceElement, currentPage: number, data: Data) {
         setUserPassword()
-        setRole()
+        //setRole()
         table.innerHTML = ''
         currentPage--
         let start: number = tableRows * currentPage
@@ -1305,15 +1305,16 @@ export const setUserPassword = async (): Promise<any> => {
         if (newUser.newUser === true && (newUser.temp !== undefined || newUser.temp !== ''))
             setPassword(raw)
     })
+    setRole(data)
 }
 
-export async function setRole(): Promise<void> {
+export async function setRole(data: any): Promise<void> {
     /*const users: any = await getEntitiesData('User')
     const filterByNewUsers: any = users.filter((data: any) => data.newUser === true)
     const FCustomer: any = filterByNewUsers.filter((data: any) => `${data.customer?.id}` === `${customerId}`)
     const filterByUserType: any = FCustomer.filter((data: any) => `${data.userType}`.includes('CUSTOMER'))
     const data: any = filterByUserType*/
-    let raw = JSON.stringify({
+    /*let raw = JSON.stringify({
         "filter": {
             "conditions": [
               {
@@ -1344,7 +1345,7 @@ export async function setRole(): Promise<void> {
             ]
         }
     })
-    let data = await getFilterEntityData("User", raw)
+    let data = await getFilterEntityData("User", raw)*/
     data.forEach((newUser: any) => {
         let raw: string = JSON.stringify({
             "id": `${newUser.id}`,
