@@ -129,7 +129,7 @@ export class Visits {
         // Rendering icons
     }
 
-    public load = (tableBody: InterfaceElement, currentPage: number, visits: any): void => {
+    public load = async (tableBody: InterfaceElement, currentPage: number, visits: any): Promise<void> => {
         tableBody.innerHTML = '' // clean table
 
         // configuring max table row size
@@ -152,12 +152,14 @@ export class Visits {
         else {
             for (let i = 0; i < paginatedItems.length; i++) {
                 let visit = paginatedItems[i] // getting visit items
+                let egressMessage = await this.egressShow(visit)
                 let row: InterfaceElement = document.createElement('TR')
                 row.innerHTML += `
                     <td style="white-space: nowrap">${visit.firstName} ${visit.firstLastName} ${visit.secondLastName}</td>
                     <td>${visit.dni}</td>
                     <td id="table-date">${visit.creationDate}</td>
                     <td id="table-time" style="white-space: nowrap">${visit.creationTime}</td>
+                    <td>${egressMessage}</td>
                     <td>${verifyUserType(visit.user.userType)}</td>
                     <td class="tag"><span>${visit.visitState.name}</span></td>
 
@@ -210,6 +212,24 @@ export class Visits {
         const renderInterface = async (entity: string): Promise<void> => {
             let entityData = await getEntityData('Visit', entity)
             //console.log(entityData)
+            function calcDates(date1: any, date2: any) {
+                date1 = new Date(date1);
+                date2 = new Date(date2);
+            
+                var one_second = 1000;
+                var one_minute = 1000 * 60;
+                var one_hour = 1000 * 60 * 60;
+                var one_day = 1000 * 60 * 60 * 24;
+            
+                var result = {
+                    seconds: (Math.floor((date2 - date1) / one_second)) % 60,
+                    minutes: Math.floor((date2 - date1) / one_minute) % 60,
+                    hours: Math.floor((date2 - date1) / one_hour) % 24,
+                    days: Math.floor((date2 - date1) / one_day)
+                };
+            
+                return result;
+            }
             renderRightSidebar(UIRightSidebar)
             const controlImages: InterfaceElement = document.getElementById('galeria')
             const visitName: InterfaceElement = document.getElementById('visit-name')
@@ -251,7 +271,18 @@ export class Visits {
             egressGuardId.value = entityData?.egressIssuedId?.username ?? ''
             const egressGuardName: InterfaceElement = document.getElementById('egress-guard-name')
             egressGuardName.value = `${entityData?.egressIssuedId?.firstName ?? ''} ${entityData?.egressIssuedId?.lastName ?? ''}`
+            const moreInfo: InterfaceElement = document.getElementById('moreInfo')
             //console.log(entityData.citadel.name)
+            if(entityData?.type === "Cliente"){
+                if ((entityData?.notificationDate ?? "" != "") && entityData?.visitState?.name == 'Finalizado') {
+                    let horaSalida = new Date(`${entityData?.egressDate ?? ''}T${entityData?.egressTime ?? ''}`);
+                    let horaExpira = new Date(`${entityData?.notificationDate ?? ''}T${entityData?.notificationTime ?? ''}`);
+                    if (horaSalida.getTime() > horaExpira.getTime()) {
+                        const diff = calcDates(horaExpira, horaSalida);
+                        moreInfo.innerText = `Atraso ${diff.days} día(s) ${diff.hours} hora(s) ${diff.minutes} minuto(s) ${diff.seconds} segundo(s).`;
+                    }
+                }
+            }
             if (entityData?.image !== undefined || entityData?.camera1 !== undefined || entityData?.camera2 !== undefined || entityData?.camera3 !== undefined|| entityData?.camera4 !== undefined) {
                 let images = []
                 if(entityData?.image !== undefined){
@@ -537,7 +568,24 @@ export class Visits {
             })
         }
     }
-
+    private egressShow = async (visit: any): Promise<String> => {
+        if(visit?.customer?.permitNotiVisit == true){
+            if ((visit?.notificationDate ?? "" != "") && visit?.visitState?.name == 'Finalizado') {
+                let horaSalida = new Date(`${visit?.egressDate ?? ''}T${visit?.egressTime ?? ''}`);
+                let horaExpira = new Date(`${visit?.notificationDate ?? ''}T${visit?.notificationTime ?? ''}`);
+                if (horaSalida.getTime() > horaExpira.getTime()) {
+                    return `${visit?.egressDate ?? ''} ${visit?.egressTime ?? ''} [Atraso]`;
+                }
+                else {
+                    return `${visit?.egressDate ?? ''} ${visit?.egressTime ?? ''}`;
+                }
+            }else{
+                return `${visit?.egressDate ?? ''} ${visit?.egressTime ?? ''}`;
+            }
+        }else{
+            return `${visit?.egressDate ?? ''} ${visit?.egressTime ?? ''}`;
+        }
+    }
     private previewZoom = async (arrayImages: any): Promise<void> => {
         const openButtons: InterfaceElement = document.querySelectorAll('#entity-details-zoom')
         openButtons.forEach((openButton: InterfaceElement) => {

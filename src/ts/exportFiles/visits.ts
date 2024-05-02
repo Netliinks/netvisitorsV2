@@ -86,72 +86,99 @@ export const exportVisitPdf = (ar: any, start: any, end: any) => {
 }
 
 export const exportVisitCsv = (ar: any, start: any, end: any) => {
-    let rows = [];
-    for(let i=0; i < ar.length; i++){
-        let visit = ar[i]
-        // @ts-ignore
-        //if(visit.creationDate >= start && visit.creationDate <= end){
-            let obj = {
-                "Nombre": `${visit.firstName} ${visit.firstLastName} ${visit.secondLastName}`,
-                "DNI": `${visit.dni}`,
-                "Fecha Creación": `${visit.creationDate}`,
-                "Hora Creación": `${visit.creationTime}`,
-                "Usuario": `${visit.user?.firstName ?? ''} ${visit.user?.lastName ?? ''}`,
-                "Tipo": `${verifyUserType(visit.user.userType)}`,
-                "Departamento": `${visit.department?.name ?? ''}`,
-                "Estado": `${visit.visitState?.name ?? ''}`,
-                "Verificado": `${visit.verifiedDocument ? 'Si' : 'No'}`,
-                "Favorita": `${visit.favorite ? 'Si' : 'No'}`,
-                "Teléfono": `${visit?.phoneNumber ?? ''}`,
-                "Autorizado": `${visit?.authorizer ?? ''}`,
-                "Fecha Ingreso": `${visit.ingressDate}`,
-                "Hora Ingreso": `${visit.ingressTime}`,
-                "Emitido Ingreso": `${visit.ingressIssuedId?.firstName ?? ''} ${visit.ingressIssuedId?.lastName ?? ''}`,
-                "Fecha Salida": `${visit?.egressDate ?? ''}`,
-                "Hora Salida": `${visit?.egressTime ?? ''}`,
-                "Emitido Salida": `${visit.egressIssuedId?.firstName ?? ''} ${visit.egressIssuedId?.lastName ?? ''}`,
-                "Asunto": `${visit.reason.split("\n").join("(salto)")}`,
+  let rows = [];
+  for (let i = 0; i < ar.length; i++) {
+      let visit = ar[i];
+      // @ts-ignore
+      //if (visit.creationDate >= start && visit.creationDate <= end) {
+          let diff: any = '';
+          if(visit?.type === "Cliente"){
+              if ((visit?.notificationDate ?? "" != "") && visit?.visitState?.name == 'Finalizado') {
+                  let horaSalida = new Date(`${visit?.egressDate ?? ''}T${visit?.egressTime ?? ''}`);
+                  let horaExpira = new Date(`${visit?.notificationDate ?? ''}T${visit?.notificationTime ?? ''}`);
+                  if (horaSalida.getTime() > horaExpira.getTime()) {
+                      diff = calcDates(horaExpira, horaSalida);
+                      //moreInfo = `Atraso ${diff.days} día(s) ${diff.hours} hora(s) ${diff.minutes} minuto(s) ${diff.seconds} segundo(s).`;
+                  }
               }
-              rows.push(obj);
-        //}
-        
-    }
-    generateFile(rows, "Visitas", "csv");
-}
-
+          }
+          let obj = {
+              "Nombre": `${visit.firstName} ${visit.firstLastName} ${visit.secondLastName}`,
+              "DNI": `${visit.dni}`,
+              "Fecha Creación": `${visit.creationDate}`,
+              "Hora Creación": `${visit.creationTime}`,
+              "Usuario": `${visit.user?.firstName ?? ''} ${visit.user?.lastName ?? ''}`,
+              "Tipo": `${verifyUserType(visit.user.userType)}`,
+              "Departamento": `${visit.department?.name ?? ''}`,
+              "Estado": `${visit.visitState?.name ?? ''}`,
+              "Verificado": `${visit.verifiedDocument ? 'Si' : 'No'}`,
+              "Favorita": `${visit.favorite ? 'Si' : 'No'}`,
+              "Teléfono": `${visit?.phoneNumber ?? ''}`,
+              "Autorizado": `${visit?.authorizer ?? ''}`,
+              "Fecha Ingreso": `${visit?.ingressDate ?? ''}`,
+              "Hora Ingreso": `${visit?.ingressTime ?? ''}`,
+              "Emitido Ingreso": `${visit.ingressIssuedId?.firstName ?? ''} ${visit.ingressIssuedId?.lastName ?? ''}`,
+              "Fecha Salida": `${visit?.egressDate ?? ''}`,
+              "Hora Salida": `${visit?.egressTime ?? ''}`,
+              "Emitido Salida": `${visit.egressIssuedId?.firstName ?? ''} ${visit.egressIssuedId?.lastName ?? ''}`,
+              "Asunto": `${visit.reason.split("\n").join("(salto)")}`,
+              'Anotación':`${diff != '' ? 'Atraso' : ''}`,
+              'Días':`${diff?.days ?? ''}`,
+              'Horas':`${diff?.hours ?? ''}`,
+              'Minutos':`${diff?.minutes ?? ''}`
+          };
+          rows.push(obj);
+      //}
+  }
+  generateFile(rows, "Visitas", "csv");
+};
 export const exportVisitXls = (ar: any, start: any, end: any) => {
-    let rows = [];
-    for(let i=0; i < ar.length; i++){
-        let visit = ar[i]
-        // @ts-ignore
-        //if(visit.creationDate >= start && visit.creationDate <= end){
-            let obj = {
-                "Nombre": `${visit.firstName} ${visit.firstLastName} ${visit.secondLastName}`,
-                "DNI": `${visit.dni}`,
-                "Fecha Creación": `${visit.creationDate}`,
-                "Hora Creación": `${visit.creationTime}`,
-                "Usuario": `${visit.user?.firstName ?? ''} ${visit.user?.lastName ?? ''}`,
-                "Tipo": `${verifyUserType(visit.user.userType)}`,
-                "Departamento": `${visit.department?.name ?? ''}`,
-                "Estado": `${visit.visitState?.name ?? ''}`,
-                "Verificado": `${visit.verifiedDocument ? 'Si' : 'No'}`,
-                "Favorita": `${visit.favorite ? 'Si' : 'No'}`,
-                "Teléfono": `${visit?.phoneNumber ?? ''}`,
-                "Autorizado": `${visit?.authorizer ?? ''}`,
-                "Fecha Ingreso": `${visit.ingressDate}`,
-                "Hora Ingreso": `${visit.ingressTime}`,
-                "Emitido Ingreso": `${visit.ingressIssuedId?.firstName ?? ''} ${visit.ingressIssuedId?.lastName ?? ''}`,
-                "Fecha Salida": `${visit?.egressDate ?? ''}`,
-                "Hora Salida": `${visit?.egressTime ?? ''}`,
-                "Emitido Salida": `${visit.egressIssuedId?.firstName ?? ''} ${visit.egressIssuedId?.lastName ?? ''}`,
-                "Asunto": `${visit.reason.split("\n").join("(salto)")}`,
+  let rows = [];
+  for (let i = 0; i < ar.length; i++) {
+      let visit = ar[i];
+      // @ts-ignore
+      //if (visit.creationDate >= start && visit.creationDate <= end) {
+          let diff: any = '';
+          if(visit?.type === "Cliente"){
+              if ((visit?.notificationDate ?? "" != "") && visit?.visitState?.name == 'Finalizado') {
+                  let horaSalida = new Date(`${visit?.egressDate ?? ''}T${visit?.egressTime ?? ''}`);
+                  let horaExpira = new Date(`${visit?.notificationDate ?? ''}T${visit?.notificationTime ?? ''}`);
+                  if (horaSalida.getTime() > horaExpira.getTime()) {
+                      diff = calcDates(horaExpira, horaSalida);
+                      //moreInfo = `Atraso ${diff.days} día(s) ${diff.hours} hora(s) ${diff.minutes} minuto(s) ${diff.seconds} segundo(s).`;
+                  }
               }
-              rows.push(obj);
-        //}
-        
-    }
-    generateFile(rows, "Visitas", "xls");
-}
+          }
+          let obj = {
+              "Nombre": `${visit.firstName} ${visit.firstLastName} ${visit.secondLastName}`,
+              "DNI": `${visit.dni}`,
+              "Fecha Creación": `${visit.creationDate}`,
+              "Hora Creación": `${visit.creationTime}`,
+              "Usuario": `${visit.user?.firstName ?? ''} ${visit.user?.lastName ?? ''}`,
+              "Tipo": `${verifyUserType(visit.user.userType)}`,
+              "Departamento": `${visit.department?.name ?? ''}`,
+              "Estado": `${visit.visitState?.name ?? ''}`,
+              "Verificado": `${visit.verifiedDocument ? 'Si' : 'No'}`,
+              "Favorita": `${visit.favorite ? 'Si' : 'No'}`,
+              "Teléfono": `${visit?.phoneNumber ?? ''}`,
+              "Autorizado": `${visit?.authorizer ?? ''}`,
+              "Fecha Ingreso": `${visit?.ingressDate ?? ''}`,
+              "Hora Ingreso": `${visit?.ingressTime ?? ''}`,
+              "Emitido Ingreso": `${visit.ingressIssuedId?.firstName ?? ''} ${visit.ingressIssuedId?.lastName ?? ''}`,
+              "Fecha Salida": `${visit?.egressDate ?? ''}`,
+              "Hora Salida": `${visit?.egressTime ?? ''}`,
+              "Emitido Salida": `${visit.egressIssuedId?.firstName ?? ''} ${visit.egressIssuedId?.lastName ?? ''}`,
+              "Asunto": `${visit.reason.split("\n").join("(salto)")}`,
+              'Anotación':`${diff != '' ? 'Atraso' : ''}`,
+              'Días':`${diff?.days ?? ''}`,
+              'Horas':`${diff?.hours ?? ''}`,
+              'Minutos':`${diff?.minutes ?? ''}`
+          };
+          rows.push(obj);
+      //}
+  }
+  generateFile(rows, "Visitas", "xls");
+};
 
 const generateFile = (ar: any, title: string, extension: string) => {
     //comprobamos compatibilidad
@@ -256,4 +283,23 @@ const newDataBlock = (array: any, index: any) => {
 
 const splitText = (doc: any, field: any, lMargin: any, rMargin: any, pdfInMM: any) => {
   return doc.splitTextToSize(field, (pdfInMM - lMargin - rMargin));
+}
+
+function calcDates(date1: any, date2: any) {
+  date1 = new Date(date1);
+  date2 = new Date(date2);
+
+  var one_second = 1000;
+  var one_minute = 1000 * 60;
+  var one_hour = 1000 * 60 * 60;
+  var one_day = 1000 * 60 * 60 * 24;
+
+  var result = {
+      seconds: (Math.floor((date2 - date1) / one_second)) % 60,
+      minutes: Math.floor((date2 - date1) / one_minute) % 60,
+      hours: Math.floor((date2 - date1) / one_hour) % 24,
+      days: Math.floor((date2 - date1) / one_day)
+  };
+
+  return result;
 }
