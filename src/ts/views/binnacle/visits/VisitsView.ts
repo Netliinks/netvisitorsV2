@@ -251,7 +251,7 @@ export class Visits {
             visitCitadelID.value = entityData.citadel?.name
 
             const visitDepartment: InterfaceElement = document.getElementById('visit-department')
-            visitDepartment.value = entityData.department?.name
+            visitDepartment.value = entityData?.department?.name ?? ''
 
             // Start marking
             const ingressDate: InterfaceElement = document.getElementById('ingress-date')
